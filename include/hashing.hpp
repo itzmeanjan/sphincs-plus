@@ -121,8 +121,8 @@ gen_mask(const uint8_t* const __restrict pk_seed,
 // this routines uses SHAKE256, for constructing a tweakable hash function,
 // producing n -bytes output.
 //
-// Note, this routine supports compile-time parameterization of both robust and
-// simple variants of T_l routine.
+// Note, this routine supports compile-time parameterization, to be used as
+// robust or simple variant of T_l routine.
 //
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
@@ -158,8 +158,8 @@ t_l(const uint8_t* const __restrict pk_seed,
 // this routines uses SHAKE256, for constructing a tweakable hash function,
 // producing n -bytes output.
 //
-// Note, this routine supports compile-time parameterization of both robust and
-// simple variants of F routine. Also notice that,
+// Note, this routine supports compile-time parameterization, to be used as
+// robust or simple variant of F routine. Also notice that,
 //
 // F == T_l | l = 1 ( see section 2.7.1 )
 //
@@ -173,6 +173,46 @@ f(const uint8_t* const __restrict pk_seed,
   uint8_t* const __restrict dig)
 {
   t_l<n, 1, v>(pk_seed, adrs, msg, dig);
+}
+
+// Given n -bytes public key seed, 32 -bytes address and 2*n -bytes message,
+// this routines uses SHAKE256, for constructing a tweakable hash function,
+// producing n -bytes output.
+//
+// Note, this routine supports compile-time parameterization, to be used as
+// robust or simple variant of H routine. Also notice that,
+//
+// H == T_l | l = 2 ( see section 2.7.1 )
+//
+// See section 7.2.1 of Sphincs+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n, const variant v>
+inline static void
+h(const uint8_t* const __restrict pk_seed,
+  const uint8_t* const __restrict adrs,
+  const uint8_t* const __restrict msg,
+  uint8_t* const __restrict dig)
+{
+  shake256::shake256<true> hasher{};
+
+  hasher.absorb(pk_seed, n);
+  hasher.absorb(adrs, 32);
+
+  if constexpr (v == variant::robust) {
+    uint8_t masked[n]{};
+
+    gen_mask<n, 1>(pk_seed, adrs, msg + 0, masked);
+    hasher.absorb(masked, n);
+
+    gen_mask<n, 1>(pk_seed, adrs, msg + n, masked);
+    hasher.absorb(masked, n);
+  } else {
+    hasher.absorb(msg, n + n);
+  }
+
+  hasher.finalize();
+
+  hasher.read(dig, n);
 }
 
 }
