@@ -81,4 +81,33 @@ prf_msg(const uint8_t* const __restrict sk_prf,
   hasher.read(dig, n);
 }
 
+// Given n -bytes public key seed, 32 -bytes address and n * l -bytes message,
+// this routine uses SHAKE256, in XOF mode, for generating a bit mask of length
+// n * l -bytes, which is XOR-ed into the message for producing masked message.
+//
+// See section 7.2.1 of Sphincs+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n, const size_t l>
+inline static void
+gen_mask(const uint8_t* const __restrict pk_seed,
+         const uint8_t* const __restrict adrs,
+         const uint8_t* const __restrict msg,
+         uint8_t* const __restrict dig)
+{
+  constexpr size_t mlen = n * l;
+
+  shake256::shake256<true> hasher{};
+
+  hasher.absorb(pk_seed, n);
+  hasher.absorb(adrs, 32);
+
+  hasher.finalize();
+
+  hasher.read(dig, mlen);
+
+  for (size_t i = 0; i < mlen; i++) {
+    dig[i] ^= msg[i];
+  }
+}
+
 }
