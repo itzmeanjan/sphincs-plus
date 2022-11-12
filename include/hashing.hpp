@@ -56,4 +56,29 @@ prf(const uint8_t* const __restrict pk_seed,
   hasher.read(dig, n);
 }
 
+// Given n -bytes secret key prf, n -bytes OptRand and mlen -bytes message ( to
+// be signed ), this routine uses SHAKE256, as pseudorandom function, for
+// generating randomness so that message can be compressed, before signing.
+//
+// See section 7.2.1 of Sphincs+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n>
+inline static void
+prf_msg(const uint8_t* const __restrict sk_prf,
+        const uint8_t* const __restrict opt_rand,
+        const uint8_t* const __restrict msg,
+        const size_t mlen,
+        uint8_t* const __restrict dig)
+{
+  shake256::shake256<true> hasher{};
+
+  hasher.absorb(sk_prf, n);
+  hasher.absorb(opt_rand, n);
+  hasher.absorb(msg, mlen);
+
+  hasher.finalize();
+
+  hasher.read(dig, n);
+}
+
 }
