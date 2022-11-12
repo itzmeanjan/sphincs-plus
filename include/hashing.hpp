@@ -5,6 +5,13 @@
 // instantiation
 namespace sphincs_hashing {
 
+// Used for parameterization of tweakable hash functions, in Sphincs+
+enum class variant : uint8_t
+{
+  robust = 1,
+  simple = 2
+};
+
 // Given n -bytes root, n -bytes public key seed, n -bytes public key root and
 // mlen -bytes message ( to be signed ), this routine uses SHAKE256, as a keyed
 // hash function, for compressing message, while extracting out m -bytes output
@@ -108,6 +115,43 @@ gen_mask(const uint8_t* const __restrict pk_seed,
   for (size_t i = 0; i < mlen; i++) {
     dig[i] ^= msg[i];
   }
+}
+
+// Given n -bytes public key seed, 32 -bytes address and n * l -bytes message,
+// this routines uses SHAKE256, for constructing a tweakable hash function,
+// producing n -bytes output.
+//
+// Note, this routine supports compile-time parameterization of both robust and
+// simple variants of T_l routine.
+//
+// See section 7.2.1 of Sphincs+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n, const size_t l, const variant v>
+inline static void
+t_l(const uint8_t* const __restrict pk_seed,
+    const uint8_t* const __restrict adrs,
+    const uint8_t* const __restrict msg,
+    uint8_t* const __restrict dig)
+{
+  constexpr size_t mlen = n * l;
+
+  shake256::shake256<true> hasher{};
+
+  hasher.absorb(pk_seed, n);
+  hasher.absorb(adrs, 32);
+
+  if constexpr (v == variant::robust) {
+    uint8_t masked[mlen]{};
+    gen_mask<n, l>(pk_seed, adrs, msg, masked);
+
+    hasher.absorb(masked, mlen);
+  } else {
+    hasher.absorb(msg, mlen);
+  }
+
+  hasher.finalize();
+
+  hasher.read(dig, n);
 }
 
 }
