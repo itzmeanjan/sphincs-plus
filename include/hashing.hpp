@@ -154,4 +154,25 @@ t_l(const uint8_t* const __restrict pk_seed,
   hasher.read(dig, n);
 }
 
+// Given n -bytes public key seed, 32 -bytes address and n -bytes message,
+// this routines uses SHAKE256, for constructing a tweakable hash function,
+// producing n -bytes output.
+//
+// Note, this routine supports compile-time parameterization of both robust and
+// simple variants of F routine. Also notice that,
+//
+// F == T_l | l = 1 ( see section 2.7.1 )
+//
+// See section 7.2.1 of Sphincs+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n, const variant v>
+inline static void
+f(const uint8_t* const __restrict pk_seed,
+  const uint8_t* const __restrict adrs,
+  const uint8_t* const __restrict msg,
+  uint8_t* const __restrict dig)
+{
+  t_l<n, 1, v>(pk_seed, adrs, msg, dig);
+}
+
 }
