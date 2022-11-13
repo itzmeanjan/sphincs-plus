@@ -187,4 +187,23 @@ struct fors_tree_t : adrs_t
   }
 };
 
+// Structure of FORS Tree Root Compression Address
+struct fors_roots_t : adrs_t
+{
+  // Returns 1 -word wide keypair address
+  uint32_t get_keypair_address()
+  {
+    return sphincs_utils::from_be_bytes(data + 20);
+  }
+
+  // Sets 1 -word wide key pair address
+  void set_keypair_address(const uint32_t address)
+  {
+    sphincs_utils::to_be_bytes(address, data + 20);
+  }
+
+  // Zeros last two words of ADRS structure
+  void set_padding() { std::memset(data + 24, 0, sizeof(uint32_t) * 2); }
+};
+
 }
