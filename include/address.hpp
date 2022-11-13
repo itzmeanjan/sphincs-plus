@@ -153,4 +153,38 @@ struct tree_t : adrs_t
   }
 };
 
+// Structure of FORS Tree Address
+struct fors_tree_t : adrs_t
+{
+  // Returns 1 -word wide keypair address
+  uint32_t get_keypair_address()
+  {
+    return sphincs_utils::from_be_bytes(data + 20);
+  }
+
+  // Sets 1 -word wide key pair address
+  void set_keypair_address(const uint32_t address)
+  {
+    sphincs_utils::to_be_bytes(address, data + 20);
+  }
+
+  // Returns 1 -word wide tree height
+  uint32_t get_tree_height() { return sphincs_utils::from_be_bytes(data + 24); }
+
+  // Sets 1 -word wide tree height
+  void set_tree_height(const uint32_t height)
+  {
+    sphincs_utils::to_be_bytes(height, data + 24);
+  }
+
+  // Returns 1 -word wide tree index
+  uint32_t get_tree_index() { return sphincs_utils::from_be_bytes(data + 28); }
+
+  // Sets 1 -word wide tree index
+  void set_tree_index(const uint32_t idx)
+  {
+    sphincs_utils::to_be_bytes(idx, data + 28);
+  }
+};
+
 }
