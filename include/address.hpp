@@ -69,4 +69,44 @@ struct adrs_t
   }
 };
 
+// Structure of WOTS+ Hash Address
+struct wots_hash_t : adrs_t
+{
+  // Returns 1 -word wide keypair address
+  uint32_t get_keypair_address()
+  {
+    return sphincs_utils::from_be_bytes(data + 20);
+  }
+
+  // Set 1 -word wide key pair address
+  void set_keypair_address(const uint32_t address)
+  {
+    sphincs_utils::to_be_bytes(address, data + 20);
+  }
+
+  // Returns 1 -word wide chain address
+  uint32_t get_chain_address()
+  {
+    return sphincs_utils::from_be_bytes(data + 24);
+  }
+
+  // Set 1 -word wide chain address
+  void set_chain_address(const uint32_t address)
+  {
+    sphincs_utils::to_be_bytes(address, data + 24);
+  }
+
+  // Returns 1 -word wide hash address
+  uint32_t get_hash_address()
+  {
+    return sphincs_utils::from_be_bytes(data + 28);
+  }
+
+  // Set 1 -word wide hash address
+  void set_hash_address(const uint32_t address)
+  {
+    sphincs_utils::to_be_bytes(address, data + 28);
+  }
+};
+
 }
