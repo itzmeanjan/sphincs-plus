@@ -206,4 +206,38 @@ struct fors_roots_t : adrs_t
   void set_padding() { std::memset(data + 24, 0, sizeof(uint32_t) * 2); }
 };
 
+// Structure of WOTS+ Key Generation Address
+struct wots_prf_t : adrs_t
+{
+  // Returns 1 -word wide keypair address
+  uint32_t get_keypair_address()
+  {
+    return sphincs_utils::from_be_bytes(data + 20);
+  }
+
+  // Set 1 -word wide key pair address
+  void set_keypair_address(const uint32_t address)
+  {
+    sphincs_utils::to_be_bytes(address, data + 20);
+  }
+
+  // Returns 1 -word wide chain address
+  uint32_t get_chain_address()
+  {
+    return sphincs_utils::from_be_bytes(data + 24);
+  }
+
+  // Set 1 -word wide chain address
+  void set_chain_address(const uint32_t address)
+  {
+    sphincs_utils::to_be_bytes(address, data + 24);
+  }
+
+  // Returns 1 -word wide hash address, which is always set to 0
+  uint32_t get_hash_address() { return 0u; }
+
+  // Zeros 1 -word wide hash address
+  void set_hash_address() { std::memset(data + 28, 0, sizeof(uint32_t)); }
+};
+
 }
