@@ -16,4 +16,15 @@ to_be_bytes(const uint32_t word, uint8_t* const bytes)
   bytes[3] = static_cast<uint8_t>(word >> 0);
 }
 
+// Given a byte array of length 4, this routine converts it to a big endian 32
+// -bit word.
+inline static uint32_t
+from_be_bytes(const uint8_t* const bytes)
+{
+  return (static_cast<uint32_t>(bytes[0]) << 24) |
+         (static_cast<uint32_t>(bytes[1]) << 16) |
+         (static_cast<uint32_t>(bytes[2]) << 8) |
+         (static_cast<uint32_t>(bytes[3]) << 0);
+}
+
 }
