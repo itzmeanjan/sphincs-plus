@@ -128,4 +128,29 @@ struct wots_pk_t : adrs_t
   void set_padding() { std::memset(data + 24, 0, sizeof(uint32_t) * 2); }
 };
 
+// Structure of Main Hash Tree Address
+struct tree_t : adrs_t
+{
+  // Zeros 1 -word wide padding
+  void set_padding() { std::memset(data + 20, 0, sizeof(uint32_t)); }
+
+  // Returns 1 -word wide tree height
+  uint32_t get_tree_height() { return sphincs_utils::from_be_bytes(data + 24); }
+
+  // Sets 1 -word wide tree height
+  void set_tree_height(const uint32_t height)
+  {
+    sphincs_utils::to_be_bytes(height, data + 24);
+  }
+
+  // Returns 1 -word wide tree index
+  uint32_t get_tree_index() { return sphincs_utils::from_be_bytes(data + 28); }
+
+  // Sets 1 -word wide tree index
+  void set_tree_index(const uint32_t idx)
+  {
+    sphincs_utils::to_be_bytes(idx, data + 28);
+  }
+};
+
 }
