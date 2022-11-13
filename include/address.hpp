@@ -27,10 +27,24 @@ struct adrs_t
 {
   uint8_t data[32]{};
 
+  // Returns 1 -word wide layer address
+  uint32_t get_layer_address()
+  {
+    return sphincs_utils::from_be_bytes(data + 0);
+  }
+
   // Only sets 1 -word wide layer address
   void set_layer_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 0);
+  }
+
+  // Returns 3 -word wide tree address
+  std::array<uint32_t, 3> get_tree_address()
+  {
+    return { sphincs_utils::from_be_bytes(data + 4),
+             sphincs_utils::from_be_bytes(data + 8),
+             sphincs_utils::from_be_bytes(data + 12) };
   }
 
   // Only sets 3 -word wide tree address
@@ -39,6 +53,12 @@ struct adrs_t
     sphincs_utils::to_be_bytes(address[0], data + 4);
     sphincs_utils::to_be_bytes(address[1], data + 8);
     sphincs_utils::to_be_bytes(address[2], data + 12);
+  }
+
+  // Returns 1 -word wide address type
+  type_t get_type()
+  {
+    return static_cast<type_t>(sphincs_utils::from_be_bytes(data + 16));
   }
 
   // Sets 1 -word wide address type, along with that zeros subsequent 3 -words.
