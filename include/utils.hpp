@@ -2,6 +2,7 @@
 #include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <iomanip>
 #include <sstream>
 
@@ -89,6 +90,53 @@ from_be_bytes(const uint8_t* const bytes)
          (static_cast<uint32_t>(bytes[1]) << 16) |
          (static_cast<uint32_t>(bytes[2]) << 8) |
          (static_cast<uint32_t>(bytes[3]) << 0);
+}
+
+// Compile-time check to ensure that output length of base-w string is within
+// allowed bounds.
+//
+// See section 2.5 of SPHINCS+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t w>
+inline static constexpr bool
+check_olen(const size_t ilen, const size_t olen)
+{
+  constexpr size_t lgw = log2<w>();
+  constexpr size_t max = (8 * ilen) / lgw;
+  return olen <= max;
+}
+
+// Given a byte array of length ilen -bytes, this routine computes output array
+// of length olen s.t. each element of output array ∈ [0, w), w ∈ {4, 16, 256}
+//
+// See algorithm 1 in section 2.5 of SPHINCS+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t w, const size_t olen>
+inline static void
+base_w(const uint8_t* const __restrict in,
+       const size_t ilen,
+       uint8_t* const __restrict out)
+{
+  constexpr size_t lgw = log2<w>();
+  constexpr uint8_t mask = w - 1;
+
+  if constexpr (w == 4) {
+    for (size_t i = 0; i < olen; i++) {
+      const size_t off = i >> 2;
+      const size_t boff = (3ul - (i & 3ul)) * lgw;
+
+      out[i] = (in[off] >> boff) & mask;
+    }
+  } else if constexpr (w == 16) {
+    for (size_t i = 0; i < olen; i++) {
+      const size_t off = i >> 1;
+      const size_t boff = (1ul - (i & 1ul)) * lgw;
+
+      out[i] = (in[off] >> boff) & mask;
+    }
+  } else {
+    std::memcpy(out, in, olen);
+  }
 }
 
 // Given a bytearray of length N, this function converts it to human readable
