@@ -5,6 +5,16 @@
 // Utility functions for SPHINCS+
 namespace sphincs_utils {
 
+// Compile-time check to ensure that `w` parameter takes only allowed values.
+//
+// See Winternitz Parameter point in section 3.1 of
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+inline static consteval bool
+check_w(const size_t w)
+{
+  return (w == 4) || (w == 16) || (w == 256);
+}
+
 // Given a 32 -bit word, this routine extracts out each byte from that word and
 // places them in a big endian byte array.
 inline static void
