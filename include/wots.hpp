@@ -41,4 +41,47 @@ chain(const uint8_t* const __restrict x,       // n -bytes
   }
 }
 
+// Generates n -bytes WOTS+ compressed public key, given n -bytes secret key
+// seed, n -bytes public key seed and 32 -bytes WOTS+ hash address, using
+// algorithm 4 defined in section 3.4 of SPHINCS+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n, const size_t w, const sphincs_hashing::variant v>
+inline static void
+pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
+      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+      sphincs_adrs::wots_hash_t adrs,          // 32 -bytes WOTS+ hash address
+      uint8_t* const __restrict pkey           // n -bytes public key
+)
+{
+  constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
+
+  sphincs_adrs::wots_pk_t pk_adrs{ adrs };
+  sphincs_adrs::wots_prf_t sk_adrs{ adrs };
+
+  sk_adrs.set_type(sphincs_adrs::type_t::WOTS_PRF);
+  sk_adrs.set_keypair_address(adrs.get_keypair_address());
+
+  uint8_t sk_limb[n]{};
+  uint8_t chain_limbs[n * len]{};
+
+  for (uint32_t i = 0; i < static_cast<uint32_t>(len); i++) {
+    const size_t off = static_cast<size_t>(i) * n;
+
+    sk_adrs.set_chain_address(i);
+    sk_adrs.set_hash_address();
+
+    sphincs_hashing::prf<n>(pk_seed, sk_seed, sk_adrs.data, sk_limb);
+
+    adrs.set_chain_address(i);
+    adrs.set_hash_address(0);
+
+    chain<n, w, v>(sk_limb, 0, w - 1, adrs, pk_seed, chain_limbs + off);
+  }
+
+  pk_adrs.set_type(sphincs_adrs::type_t::WOTS_PK);
+  pk_adrs.set_keypair_address(adrs.get_keypair_address());
+
+  sphincs_hashing::t_l<n, len, v>(pk_seed, pk_adrs.data, chain_limbs, pkey);
+}
+
 }
