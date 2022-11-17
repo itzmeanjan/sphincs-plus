@@ -1,10 +1,12 @@
 #pragma once
+#include <array>
 #include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <iomanip>
 #include <sstream>
+#include <type_traits>
 
 // Utility functions for SPHINCS+
 namespace sphincs_utils {
@@ -104,6 +106,37 @@ check_olen(const size_t ilen, const size_t olen)
   constexpr size_t lgw = log2<w>();
   constexpr size_t max = (8 * ilen) / lgw;
   return olen <= max;
+}
+
+// Given an unsigned integer ( whose type can be templated ), this routine
+// returns a big endian byte array of length y.
+//
+// Two edge cases, to keep in mind,
+//
+// - If y > sizeof(x), then extra bytes will be zerod.
+// - If y < sizeof(x) and x requires > y -bytes to be represented properly some
+// bits may be lost.
+//
+// See section 2.4 of SPHINCS+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<typename T, const size_t y>
+inline static std::array<uint8_t, y>
+to_byte(const T x)
+  requires(std::is_unsigned_v<T>)
+{
+  constexpr size_t blen = sizeof(T);
+  constexpr bool flg = y > blen;
+  constexpr size_t br[]{ 0, y - blen };
+  constexpr size_t start = br[flg];
+
+  std::array<uint8_t, y> res{};
+
+  for (size_t i = start; i < y; i++) {
+    const size_t shr = ((y - 1) - i) << 3;
+    res[i] = static_cast<uint8_t>(x >> shr);
+  }
+
+  return res;
 }
 
 // Given a byte array of length ilen -bytes, this routine computes output array
