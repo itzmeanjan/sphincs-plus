@@ -75,13 +75,79 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
     adrs.set_chain_address(i);
     adrs.set_hash_address(0);
 
-    chain<n, w, v>(sk_limb, 0, w - 1, adrs, pk_seed, chain_limbs + off);
+    chain<n, w, v>(sk_limb,
+                   0u,
+                   static_cast<uint32_t>(w - 1),
+                   adrs,
+                   pk_seed,
+                   chain_limbs + off);
   }
 
   pk_adrs.set_type(sphincs_adrs::type_t::WOTS_PK);
   pk_adrs.set_keypair_address(adrs.get_keypair_address());
 
   sphincs_hashing::t_l<n, len, v>(pk_seed, pk_adrs.data, chain_limbs, pkey);
+}
+
+// Generates n * len -bytes WOTS+ signature, given n -bytes message, n -bytes
+// secret key seed, n -bytes public key seed and 32 -bytes WOTS+ hash address,
+// using algorithm 5 defined in section 3.5 of SPHINCS+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n, const size_t w, const sphincs_hashing::variant v>
+inline static void
+sign(const uint8_t* const __restrict msg,     // n -bytes message to sign
+     const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
+     const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+     sphincs_adrs::wots_hash_t adrs,          // 32 -bytes WOTS+ hash address
+     uint8_t* const __restrict sig            // n * len -bytes signature
+)
+{
+  constexpr size_t lgw = sphincs_utils::log2<w>();
+  constexpr size_t len1 = sphincs_utils::compute_wots_len1<n, w>();
+  constexpr size_t len2 = sphincs_utils::compute_wots_len2<n, w, len1>();
+  constexpr size_t len = len1 + len2;
+
+  uint32_t csum = 0;
+  uint8_t msg_[len]{};
+
+  sphincs_utils::base_w<w, len1>(msg, n, msg_);
+
+  for (size_t i = 0; i < len1; i++) {
+    csum += static_cast<uint32_t>(w - 1ul) - static_cast<uint32_t>(msg_[i]);
+  }
+
+  if constexpr ((lgw & 7ul) != 0) {
+    csum <<= (8ul - ((len2 * lgw) & 7ul));
+  }
+
+  constexpr size_t t0 = len2 * lgw;
+  constexpr size_t t1 = t0 + 7ul;
+  constexpr size_t len_2_bytes = t1 >> 3; // = ceil(t0 / 8)
+
+  const auto bytes = sphincs_utils::to_byte<uint32_t, len_2_bytes>(csum);
+  sphincs_utils::base_w<w, len2>(bytes.data(), len_2_bytes, msg_ + len1);
+
+  sphincs_adrs::wots_prf_t sk_adrs{ adrs };
+
+  sk_adrs.set_type(sphincs_adrs::type_t::WOTS_PRF);
+  sk_adrs.set_keypair_address(adrs.get_keypair_address());
+
+  uint8_t sk[n]{};
+
+  for (uint32_t i = 0; i < static_cast<uint32_t>(len); i++) {
+    const size_t off = static_cast<size_t>(i) * n;
+
+    sk_adrs.set_chain_address(i);
+    sk_adrs.set_hash_address();
+
+    sphincs_hashing::prf<n>(pk_seed, sk_seed, sk_adrs.data, sk);
+
+    adrs.set_chain_address(i);
+    adrs.set_hash_address(0);
+
+    const uint32_t steps = static_cast<uint32_t>(msg[i]);
+    chain<n, w, v>(sk, 0u, steps, adrs, pk_seed, sig + off);
+  }
 }
 
 }
