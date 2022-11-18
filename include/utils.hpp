@@ -100,9 +100,9 @@ from_be_bytes(const uint8_t* const bytes)
 //
 // See section 2.5 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t w>
+template<const size_t w, const size_t ilen, const size_t olen>
 inline static constexpr bool
-check_olen(const size_t ilen, const size_t olen)
+check_olen()
 {
   constexpr size_t lgw = log2<w>();
   constexpr size_t max = (8 * ilen) / lgw;
@@ -145,11 +145,10 @@ to_byte(const T x)
 //
 // See algorithm 1 in section 2.5 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t w, const size_t olen>
+template<const size_t w, const size_t ilen, const size_t olen>
 inline static void
-base_w(const uint8_t* const __restrict in,
-       const size_t ilen,
-       uint8_t* const __restrict out)
+base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
+  requires(check_olen<w, ilen, olen>())
 {
   constexpr size_t lgw = log2<w>();
   constexpr uint8_t mask = w - 1;

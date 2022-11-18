@@ -110,7 +110,7 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message to sign
   uint32_t csum = 0;
   uint8_t tmp[len]{};
 
-  sphincs_utils::base_w<w, len1>(msg, n, tmp);
+  sphincs_utils::base_w<w, n, len1>(msg, tmp);
 
   for (size_t i = 0; i < len1; i++) {
     csum += static_cast<uint32_t>(w - 1ul) - static_cast<uint32_t>(tmp[i]);
@@ -125,7 +125,7 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message to sign
   constexpr size_t len_2_bytes = t1 >> 3; // = ceil(t0 / 8)
 
   const auto bytes = sphincs_utils::to_byte<uint32_t, len_2_bytes>(csum);
-  sphincs_utils::base_w<w, len2>(bytes.data(), len_2_bytes, tmp + len1);
+  sphincs_utils::base_w<w, len_2_bytes, len2>(bytes.data(), tmp + len1);
 
   sphincs_adrs::wots_prf_t sk_adrs{ adrs };
 
@@ -175,7 +175,7 @@ pk_from_sig(
   uint32_t csum = 0;
   uint8_t tmp0[len]{};
 
-  sphincs_utils::base_w<w, len1>(msg, n, tmp0);
+  sphincs_utils::base_w<w, n, len1>(msg, tmp0);
 
   for (size_t i = 0; i < len1; i++) {
     csum += static_cast<uint32_t>(w - 1ul) - static_cast<uint32_t>(tmp0[i]);
@@ -190,7 +190,7 @@ pk_from_sig(
   constexpr size_t len_2_bytes = t1 >> 3; // = ceil(t0 / 8)
 
   const auto bytes = sphincs_utils::to_byte<uint32_t, len_2_bytes>(csum);
-  sphincs_utils::base_w<w, len2>(bytes.data(), len_2_bytes, tmp0 + len1);
+  sphincs_utils::base_w<w, len_2_bytes, len2>(bytes.data(), tmp0 + len1);
 
   uint8_t tmp1[n * len]{};
 
