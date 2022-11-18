@@ -27,6 +27,9 @@ struct adrs_t
 {
   uint8_t data[32]{};
 
+  adrs_t() {}
+  adrs_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
+
   // Returns 1 -word wide layer address
   uint32_t get_layer_address()
   {
@@ -72,6 +75,9 @@ struct adrs_t
 // Structure of WOTS+ Hash Address
 struct wots_hash_t : adrs_t
 {
+  wots_hash_t() {}
+  wots_hash_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
+
   // Returns 1 -word wide keypair address
   uint32_t get_keypair_address()
   {
@@ -112,6 +118,9 @@ struct wots_hash_t : adrs_t
 // Structure of WOTS+ Public Key Compression Address
 struct wots_pk_t : adrs_t
 {
+  wots_pk_t() {}
+  wots_pk_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
+
   // Returns 1 -word wide keypair address
   uint32_t get_keypair_address()
   {
@@ -131,6 +140,9 @@ struct wots_pk_t : adrs_t
 // Structure of Main Hash Tree Address
 struct tree_t : adrs_t
 {
+  tree_t() {}
+  tree_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
+
   // Zeros 1 -word wide padding
   void set_padding() { std::memset(data + 20, 0, sizeof(uint32_t)); }
 
@@ -156,6 +168,9 @@ struct tree_t : adrs_t
 // Structure of FORS Tree Address
 struct fors_tree_t : adrs_t
 {
+  fors_tree_t() {}
+  fors_tree_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
+
   // Returns 1 -word wide keypair address
   uint32_t get_keypair_address()
   {
@@ -190,6 +205,9 @@ struct fors_tree_t : adrs_t
 // Structure of FORS Tree Root Compression Address
 struct fors_roots_t : adrs_t
 {
+  fors_roots_t() {}
+  fors_roots_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
+
   // Returns 1 -word wide keypair address
   uint32_t get_keypair_address()
   {
@@ -209,6 +227,9 @@ struct fors_roots_t : adrs_t
 // Structure of WOTS+ Key Generation Address
 struct wots_prf_t : adrs_t
 {
+  wots_prf_t() {}
+  wots_prf_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
+
   // Returns 1 -word wide keypair address
   uint32_t get_keypair_address()
   {
@@ -243,6 +264,9 @@ struct wots_prf_t : adrs_t
 // Structure of FORS Key Generation Address
 struct fors_prf_t : adrs_t
 {
+  fors_prf_t() {}
+  fors_prf_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
+
   // Returns 1 -word wide keypair address
   uint32_t get_keypair_address()
   {
