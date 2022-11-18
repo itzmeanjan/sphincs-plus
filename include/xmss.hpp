@@ -105,4 +105,47 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
   treehash<n, w, v>(sk_seed, 0u, h, pk_seed, adrs, pkey);
 }
 
+// Computes (len * n + h * n) -bytes XMSS signature, for n -bytes message, using
+// n-bytes secret key seed, 4 -bytes WOTS+ keypair index, n -bytes public key
+// seed & 32 -bytes address, encapsulating which XMSS instance we're using,
+// following algorithm 9, described in section 4.1.6 of SPHINCS+ specification.
+//
+// For understanding XMSS signature structure, I suggest you look at figure 10
+// and read section 4.1.5 of SPHINCS+ specification.
+//
+// Find the specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const uint32_t h,
+         const size_t n,
+         const size_t w,
+         const sphincs_hashing::variant v>
+inline static void
+sign(const uint8_t* const __restrict msg, // n -bytes message ( to be signed )
+     const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
+     const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
+     const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+     const sphincs_adrs::adrs_t adrs, // 32 -bytes address of XMSS instance
+     uint8_t* const __restrict sig    // (len * n + h * n) -bytes signature
+)
+{
+  constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
+  constexpr size_t off0 = 0ul;
+  constexpr size_t off1 = off0 + len * n;
+
+  for (uint32_t j = 0; j < h; j++) {
+    const size_t off2 = j * n;
+    const size_t off = off1 + off2;
+
+    const uint32_t k = (idx >> j) ^ 1u;
+    treehash<n, w, v>(sk_seed, k << j, j, pk_seed, adrs, sig + off);
+  }
+
+  sphincs_adrs::wots_hash_t wots_adrs{ adrs };
+
+  wots_adrs.set_type(sphincs_adrs::type_t::WOTS_HASH);
+  wots_adrs.set_keypair_address(idx);
+
+  sphincs_wots::sign<n, w, v>(msg, sk_seed, pk_seed, wots_adrs, sig);
+}
+
 }
