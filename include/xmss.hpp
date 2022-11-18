@@ -148,4 +148,77 @@ sign(const uint8_t* const __restrict msg, // n -bytes message ( to be signed )
   sphincs_wots::sign<n, w, v>(msg, sk_seed, pk_seed, wots_adrs, sig);
 }
 
+// Computes n -bytes XMSS public key from (len * n + h * n) -bytes XMSS
+// signature and n -bytes message, when n -bytes public key seed, 4 -bytes WOTS+
+// keypair address and 32 -bytes address, encapsulating XMSS instance, is
+// provided.
+//
+// It uses algorithm 10 for implicit XMSS signature verification, which is
+// described in section 4.1.7 of the specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const uint32_t h,
+         const size_t n,
+         const size_t w,
+         const sphincs_hashing::variant v>
+inline static void
+pk_from_sig(
+  const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
+  const uint8_t* const __restrict sig,     // (len * n + h * n) -bytes signature
+  const uint8_t* const __restrict msg,     // n -bytes message
+  const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+  const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of XMSS instance
+  uint8_t* const __restrict pkey           // n -bytes public key
+)
+{
+  constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
+  constexpr size_t soff = len * n;
+
+  // Two consecutive nodes, each of n -bytes width
+  //
+  // Used for computing parent node of binary Merkle Tree, from two children
+  uint8_t c_nodes[n + n]{};
+
+  // Single node, used for temporarily storing computed n -bytes digest
+  uint8_t tmp[n]{};
+
+  sphincs_adrs::wots_hash_t hash_adrs{ adrs };
+
+  hash_adrs.set_type(sphincs_adrs::type_t::WOTS_HASH);
+  hash_adrs.set_keypair_address(idx);
+
+  sphincs_wots::pk_from_sig<n, w, v>(sig, msg, pk_seed, hash_adrs, c_nodes);
+
+  sphincs_adrs::tree_t tree_adrs{ adrs };
+
+  tree_adrs.set_type(sphincs_adrs::type_t::TREE);
+  tree_adrs.set_tree_index(idx);
+
+  for (uint32_t k = 0; k < h; k++) {
+    const size_t aoff = k * n;
+    const size_t off = soff + aoff;
+
+    tree_adrs.set_tree_height(k + 1u);
+
+    const bool flg = static_cast<bool>((idx >> k) & 1u);
+    if (flg) {
+      tree_adrs.set_tree_index(tree_adrs.get_tree_index() >> 1);
+
+      std::memcpy(c_nodes + n, sig + off, n);
+      sphincs_hashing::h<n, v>(pk_seed, tree_adrs.data, c_nodes, tmp);
+      std::memcpy(c_nodes + n, tmp, n);
+    } else {
+      tree_adrs.set_tree_index((tree_adrs.get_tree_index() - 1u) >> 1);
+
+      std::memcpy(c_nodes + n, c_nodes + 0, n);
+      std::memcpy(c_nodes + 0, sig + off, n);
+      sphincs_hashing::h<n, v>(pk_seed, tree_adrs.data, c_nodes, tmp);
+      std::memcpy(c_nodes + n, tmp, n);
+    }
+
+    std::memcpy(c_nodes + 0, c_nodes + n, n);
+  }
+
+  std::memcpy(pkey, c_nodes + 0, n);
+}
+
 }
