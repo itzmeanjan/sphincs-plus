@@ -200,7 +200,7 @@ pk_from_sig(
     tree_adrs.set_tree_height(k + 1u);
 
     const bool flg = static_cast<bool>((idx >> k) & 1u);
-    if (flg) {
+    if (!flg) {
       tree_adrs.set_tree_index(tree_adrs.get_tree_index() >> 1);
 
       std::memcpy(c_nodes + n, sig + off, n);
