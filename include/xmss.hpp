@@ -88,4 +88,21 @@ treehash(
   stack.pop(); // stack must be empty now !
 }
 
+// Computes XMSS public key, which is the n -bytes root of the binary hash tree,
+// of height h, using algorithm 8, described in section 4.1.4 of SPHINCS+
+// specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const uint32_t h,
+         const size_t n,
+         const size_t w,
+         const sphincs_hashing::variant v>
+inline static void
+pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
+      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+      const sphincs_adrs::adrs_t adrs, // 32 -bytes address of containing tree
+      uint8_t* const __restrict pkey   // n -bytes public key
+)
+{
+  treehash<n, w, v>(sk_seed, 0u, h, pk_seed, adrs, pkey);
+}
+
 }
