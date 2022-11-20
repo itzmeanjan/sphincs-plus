@@ -32,5 +32,26 @@ main()
 
   std::cout << "[test] Fixed Input-Length XMSS signature\n";
 
+  {
+    using namespace test_sphincs;
+
+    test_hypertree<63, 7, 16, 16, sphincs_hashing::variant::robust>();
+    test_hypertree<63, 7, 16, 16, sphincs_hashing::variant::simple>();
+    test_hypertree<66, 22, 16, 16, sphincs_hashing::variant::robust>();
+    test_hypertree<66, 22, 16, 16, sphincs_hashing::variant::simple>();
+
+    test_hypertree<63, 7, 24, 16, sphincs_hashing::variant::robust>();
+    test_hypertree<63, 7, 24, 16, sphincs_hashing::variant::simple>();
+    test_hypertree<66, 22, 24, 16, sphincs_hashing::variant::robust>();
+    test_hypertree<66, 22, 24, 16, sphincs_hashing::variant::simple>();
+
+    test_hypertree<64, 8, 32, 16, sphincs_hashing::variant::robust>();
+    test_hypertree<64, 8, 32, 16, sphincs_hashing::variant::simple>();
+    test_hypertree<68, 17, 32, 16, sphincs_hashing::variant::robust>();
+    test_hypertree<68, 17, 32, 16, sphincs_hashing::variant::simple>();
+
+    std::cout << "[test] HyperTree signature\n";
+  }
+
   return EXIT_SUCCESS;
 }
