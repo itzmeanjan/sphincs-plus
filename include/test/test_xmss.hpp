@@ -1,6 +1,5 @@
 #pragma once
 #include "xmss.hpp"
-#include <cassert>
 
 // Test functional correctness of SPHINCS+
 namespace test_sphincs {
