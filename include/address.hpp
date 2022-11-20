@@ -58,6 +58,16 @@ struct adrs_t
     sphincs_utils::to_be_bytes(address[2], data + 12);
   }
 
+  // Only sets 3 -word wide tree address with a 64 -bit address i.e. higher
+  // 32 -bits are zeroed
+  void set_tree_address(const uint64_t address)
+  {
+    const uint32_t high = static_cast<uint32_t>(address >> 32);
+    const uint32_t low = static_cast<uint32_t>(address >> 0);
+
+    set_tree_address({ 0u, high, low });
+  }
+
   // Returns 1 -word wide address type
   type_t get_type()
   {
