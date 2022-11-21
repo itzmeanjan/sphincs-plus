@@ -97,4 +97,43 @@ treehash(
   stack.pop(); // stack must be empty now !
 }
 
+// Compile-time check to ensure that FORS parameter t, a are consistent
+// i.e. t == 2^a
+inline static constexpr bool
+check_ta(const uint32_t t, const uint32_t a)
+{
+  return (t == 1u << a);
+}
+
+// Computes a n -bytes FORS public key, given n -bytes secret key seed, n -bytes
+// public key seed and 32 -bytes FORS address, encoding the position of FORS
+// instance within SPHINCS+, using algorithm 16, as described in section 5.4 of
+// the specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n,
+         const uint32_t k,
+         const uint32_t t,
+         const uint32_t a,
+         const sphincs_hashing::variant v>
+inline static void
+pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
+      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+      sphincs_adrs::fors_tree_t adrs,          // 32 -bytes FORS address
+      uint8_t* const __restrict pkey           // n -bytes public key
+      )
+  requires(check_ta(t, a))
+{
+  sphincs_adrs::fors_roots_t roots_adrs{ adrs };
+  uint8_t roots[k * n]{};
+
+  for (uint32_t i = 0; i < k; i++) {
+    const size_t off = static_cast<size_t>(i) * n;
+    treehash<n, v>(sk_seed, i * t, a, pk_seed, adrs, roots + off);
+  }
+
+  roots_adrs.set_type(sphincs_adrs::type_t::FORS_ROOTS);
+  roots_adrs.set_keypair_address(adrs.get_keypair_address());
+
+  sphincs_hashing::t_l<n, k, v>(pk_seed, roots_adrs.data, roots, pkey);
+}
+
 }
