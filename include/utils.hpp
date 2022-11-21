@@ -182,24 +182,24 @@ base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
 inline static uint32_t
 extract_contiguous_bits_as_u32(
   const uint8_t* const __restrict msg, // byte array to extract bits from
-  const size_t frm_idx,                // starting bit index
-  const size_t to_idx                  // ending bit index
+  const uint32_t frm_idx,              // starting bit index
+  const uint32_t to_idx                // ending bit index
 )
 {
   constexpr uint8_t mask = 0b1;
 
   assert(to_idx > frm_idx);
-  const size_t bits = to_idx - frm_idx + 1ul;
-  assert(bits <= 32);
+  const uint32_t bits = to_idx - frm_idx + 1u;
+  assert(bits <= 32u);
 
   uint32_t res = 0u;
 
-  for (size_t i = frm_idx; i <= to_idx; i++) {
-    const size_t byte_off = i >> 3;
-    const size_t bit_off = i & 7ul;
+  for (uint32_t i = frm_idx; i <= to_idx; i++) {
+    const uint32_t byte_off = i >> 3;
+    const uint32_t bit_off = i & 7u;
 
     const uint8_t bit = (msg[byte_off] >> bit_off) & mask;
-    res |= static_cast<uint32_t>(bit) << (bits - (i - frm_idx) - 1ul);
+    res |= static_cast<uint32_t>(bit) << (bits - (i - frm_idx) - 1u);
   }
 
   return res;
