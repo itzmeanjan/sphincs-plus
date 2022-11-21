@@ -180,4 +180,81 @@ sign(const uint8_t* const __restrict msg, // ⌈(k * a) / 8⌉ -bytes message
   }
 }
 
+// Computes n -bytes FORS public key, from k * n * (a + 1) -bytes FORS
+// signature and ⌈(k * a) / 8⌉ -bytes message ( i.e. actually k * a -bit array )
+// while using n -bytes public key seed and 32 -bytes address, encapsulating
+// address of FORS instance within SPHINCS+ virtual structure, following
+// algorithm 18, as described in section
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n,
+         const uint32_t k,
+         const uint32_t t,
+         const uint32_t a,
+         const sphincs_hashing::variant v>
+inline static void
+pk_from_sig(
+  const uint8_t* const __restrict sig, // k * n * (a + 1) -bytes FORS signature
+  const uint8_t* const __restrict msg, // ⌈(k * a) / 8⌉ -bytes message
+  const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+  sphincs_adrs::fors_tree_t adrs,          // 32 -bytes FORS address
+  uint8_t* const __restrict pkey           // n -bytes FORS public key
+)
+{
+  constexpr size_t skey_val_len = n;
+  constexpr size_t auth_path_len = static_cast<size_t>(a) * n;
+  constexpr size_t sig_elm_len = skey_val_len + auth_path_len;
+
+  uint8_t c_nodes[n + n]{}; // a pair of sibling nodes, each of n -bytes
+  uint8_t tmp[n]{};
+  uint8_t roots[n * k]{};
+
+  for (uint32_t i = 0; i < k; i++) {
+    const size_t frm = i * a;
+    const size_t to = (i + 1) * a - 1;
+
+    uint32_t idx = sphincs_utils::extract_contiguous_bits_as_u32(msg, frm, to);
+
+    const size_t off0 = i * sig_elm_len;     // next n -bytes secret key value
+    const size_t off1 = off0 + skey_val_len; // next a * n -bytes auth path
+
+    adrs.set_tree_height(0u);
+    adrs.set_tree_index(i * t + idx);
+
+    sphincs_hashing::f<n, v>(pk_seed, adrs.data, sig + off0, c_nodes + 0);
+
+    for (uint32_t j = 0; j < a; j++) {
+      const size_t off2 = off1 + j * n;
+      adrs.set_tree_height(j + 1u);
+
+      const bool flg = static_cast<bool>((idx >> j) & 1u);
+      if (!flg) {
+        adrs.set_tree_index(adrs.get_tree_index() >> 1);
+
+        std::memcpy(c_nodes + n, sig + off2, n);
+        sphincs_hashing::h<n, v>(pk_seed, adrs.data, c_nodes, tmp);
+        std::memcpy(c_nodes + n, tmp, n);
+      } else {
+        adrs.set_tree_index((adrs.get_tree_index() - 1u) >> 1);
+
+        std::memcpy(c_nodes + n, c_nodes + 0, n);
+        std::memcpy(c_nodes + 0, sig + off2, n);
+        sphincs_hashing::h<n, v>(pk_seed, adrs.data, c_nodes, tmp);
+        std::memcpy(c_nodes + n, tmp, n);
+      }
+
+      std::memcpy(c_nodes + 0, c_nodes + n, n);
+    }
+
+    const size_t off2 = i * n; // next n -bytes i -th FORS tree root
+    std::memcpy(roots + off2, c_nodes + 0, n);
+  }
+
+  sphincs_adrs::fors_roots_t roots_adrs{ adrs };
+
+  roots_adrs.set_type(sphincs_adrs::type_t::FORS_ROOTS);
+  roots_adrs.set_keypair_address(adrs.get_keypair_address());
+
+  sphincs_hashing::t_l<n, k, v>(pk_seed, roots_adrs.data, roots, pkey);
+}
+
 }
