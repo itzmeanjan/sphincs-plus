@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <bit>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -170,6 +171,38 @@ base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
   } else {
     std::memcpy(out, in, olen);
   }
+}
+
+// Given a byte array, this routine extracts out a -many contiguous bits,
+// starting from bit index `frm_idx` and ending at `to_idx` ( inclusive ) while
+// enumerating bits inside each byte from least significant bits to most
+// significant bits ( i.e. a = to_idx - frm_idx + 1 ). Extracted a -many
+// contiguous bits are now interpreted as an 32 -bit unsigned integer
+// ∈ [0, t) | a <= 32 and t = 2^a
+inline static uint32_t
+extract_contiguous_bits_as_u32(
+  const uint8_t* const __restrict msg, // byte array to extract bits from
+  const uint32_t frm_idx,              // starting bit index
+  const uint32_t to_idx                // ending bit index
+)
+{
+  constexpr uint8_t mask = 0b1;
+
+  assert(to_idx > frm_idx);
+  const uint32_t bits = to_idx - frm_idx + 1u;
+  assert(bits <= 32u);
+
+  uint32_t res = 0u;
+
+  for (uint32_t i = frm_idx; i <= to_idx; i++) {
+    const uint32_t byte_off = i >> 3;
+    const uint32_t bit_off = i & 7u;
+
+    const uint8_t bit = (msg[byte_off] >> bit_off) & mask;
+    res |= static_cast<uint32_t>(bit) << (bits - (i - frm_idx) - 1u);
+  }
+
+  return res;
 }
 
 // Given a bytearray of length N, this function converts it to human readable
