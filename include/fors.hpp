@@ -59,6 +59,9 @@ treehash(
   for (uint32_t i = 0; i < leaf_cnt; i++) {
     skgen<n>(pk_seed, sk_seed, tree_adrs, s_idx + i, sk_val);
 
+    tree_adrs.set_tree_height(0u);
+    tree_adrs.set_tree_index(s_idx + i);
+
     sphincs_xmss::node_t<n> node{};
     sphincs_hashing::f<n, v>(pk_seed, tree_adrs.data, sk_val, node.data);
     node.height = 1u;
