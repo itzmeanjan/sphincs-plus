@@ -74,6 +74,20 @@ compute_wots_len()
   return len1 + len2;
 }
 
+// Compile-time compute message digest length ( = m ) in bytes, following
+// section 6.1 of SPHINCS+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const uint32_t h, const uint32_t d, const uint32_t a, const uint32_t k>
+inline static constexpr size_t
+compute_sphincs_md_len()
+{
+  constexpr uint32_t t0 = (k * a + 7) >> 3;
+  constexpr uint32_t t1 = (h - (h / d) + 7) >> 3;
+  constexpr uint32_t t2 = ((h / d) + 7) >> 3;
+
+  return static_cast<size_t>(t0 + t1 + t2);
+}
+
 // Given a 32 -bit word, this routine extracts out each byte from that word and
 // places them in a big endian byte array.
 inline static void
