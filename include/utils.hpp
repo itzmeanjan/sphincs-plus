@@ -122,7 +122,7 @@ template<const size_t n>
 inline static constexpr size_t
 get_sphincs_skey_len()
 {
-  return n + n + get_sphincs_pkey_len();
+  return n + n + get_sphincs_pkey_len<n>();
 }
 
 // Compile-time compute length of SPHINCS+ signature, see figure 15 of the
