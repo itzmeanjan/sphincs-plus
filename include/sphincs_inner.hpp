@@ -87,11 +87,11 @@ sign(const uint8_t* const __restrict msg,
   constexpr size_t ileaf_len = static_cast<size_t>(((h / d) + 7) >> 3);
   constexpr size_t m = md_len + itree_len + ileaf_len;
 
-  constexpr size_t fors_sig_len = n * static_cast<size_t>(k * (a + 1u));
+  constexpr size_t fors_sl = sphincs_utils::compute_fors_sig_len<n, a, k>();
 
-  const uint8_t* const sig0 = sig;                 // Randomess portion
-  const uint8_t* const sig1 = sig0 + n;            // FORS signature portion
-  const uint8_t* const sig2 = sig1 + fors_sig_len; // HT signature portion
+  const uint8_t* const sig0 = sig;            // Randomess portion
+  const uint8_t* const sig1 = sig0 + n;       // FORS signature portion
+  const uint8_t* const sig2 = sig1 + fors_sl; // HT signature portion
 
   const uint8_t* const sk_seed = skey;
   const uint8_t* const sk_prf = sk_seed + n;

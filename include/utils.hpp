@@ -88,6 +88,25 @@ compute_sphincs_md_len()
   return static_cast<size_t>(t0 + t1 + t2);
 }
 
+// Compile-time compute length of FORS sigature, following section 5.5 of
+// the specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n, const uint32_t a, const uint32_t k>
+inline static constexpr size_t
+compute_fors_sig_len()
+{
+  return n * static_cast<size_t>(k * (a + 1u));
+}
+
+// Compile-time compute length of HyperTree signature, following section 4.2.3
+// of the specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const uint32_t h, const uint32_t d, const size_t n, const size_t w>
+inline static constexpr size_t
+compute_ht_sig_len()
+{
+  constexpr size_t len = compute_wots_len<n, w>();
+  return static_cast<size_t>(h + d * len) * n;
+}
+
 // Given a 32 -bit word, this routine extracts out each byte from that word and
 // places them in a big endian byte array.
 inline static void
