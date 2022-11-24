@@ -107,6 +107,38 @@ compute_ht_sig_len()
   return static_cast<size_t>(h + d * len) * n;
 }
 
+// Compile-time compute length of SPHINCS+ public key; see figure 14 of the
+// specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n>
+inline static constexpr size_t
+get_sphincs_pkey_len()
+{
+  return n + n;
+}
+
+// Compile-time compute length of SPHINCS+ secret key; see figure 14 of the
+// specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n>
+inline static constexpr size_t
+get_sphincs_skey_len()
+{
+  return n + n + get_sphincs_pkey_len();
+}
+
+// Compile-time compute length of SPHINCS+ signature, see figure 15 of the
+// specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n,
+         const uint32_t h,
+         const uint32_t d,
+         const uint32_t a,
+         const uint32_t k,
+         const size_t w>
+inline static constexpr size_t
+get_sphincs_sig_len()
+{
+  return n + compute_fors_sig_len<n, a, k>() + compute_ht_sig_len<h, d, n, w>();
+}
+
 // Given a 32 -bit word, this routine extracts out each byte from that word and
 // places them in a big endian byte array.
 inline static void
