@@ -29,6 +29,8 @@ keygen(benchmark::State& state)
     benchmark::ClobberMemory();
   }
 
+  state.SetItemsProcessed(state.iterations());
+
   std::free(pkey);
   std::free(skey);
 }
@@ -67,6 +69,8 @@ sign(benchmark::State& state)
     benchmark::ClobberMemory();
   }
 
+  state.SetItemsProcessed(state.iterations());
+
   std::free(pkey);
   std::free(skey);
   std::free(msg);
@@ -80,7 +84,8 @@ template<const size_t n,
          const uint32_t a,
          const uint32_t k,
          const size_t w,
-         const sphincs_hashing::variant v>
+         const sphincs_hashing::variant v,
+         const bool randomize = false>
 inline static void
 verify(benchmark::State& state)
 {
@@ -107,6 +112,8 @@ verify(benchmark::State& state)
     benchmark::DoNotOptimize(pkey);
     benchmark::ClobberMemory();
   }
+
+  state.SetItemsProcessed(state.iterations());
 
   std::free(pkey);
   std::free(skey);
