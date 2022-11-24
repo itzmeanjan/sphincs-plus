@@ -90,18 +90,19 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
 
   constexpr size_t fors_sl = sphincs_utils::compute_fors_sig_len<n, a, k>();
 
-  const uint8_t* const sig0 = sig;            // Randomness portion
-  const uint8_t* const sig1 = sig0 + n;       // FORS signature portion
-  const uint8_t* const sig2 = sig1 + fors_sl; // HT signature portion
+  uint8_t* const sig0 = sig;            // Randomness portion
+  uint8_t* const sig1 = sig0 + n;       // FORS signature portion
+  uint8_t* const sig2 = sig1 + fors_sl; // HT signature portion
 
   const uint8_t* const sk_seed = skey;
   const uint8_t* const sk_prf = sk_seed + n;
   const uint8_t* const pk_seed = sk_prf + n;
   const uint8_t* const pk_root = pk_seed + n;
 
-  constexpr uint64_t br[]{ (1ul << (h - (h / d))) - 1ul, 0xfffffffffffffffful };
+  constexpr uint32_t h_ = h - (h / d);
+  constexpr bool flg = h_ == 64u;
 
-  constexpr uint64_t mask0 = br[(h - (h / d)) == 64u];
+  constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) - 1ul + (1ul << 63) * flg;
   constexpr uint32_t mask1 = (1u << (h / d)) - 1ul;
 
   uint8_t opt[n]{};
@@ -180,9 +181,10 @@ verify(const uint8_t* const __restrict msg, // message which was signed
   const uint8_t* const pk_seed = pkey;
   const uint8_t* const pk_root = pk_seed + n;
 
-  constexpr uint64_t br[]{ (1ul << (h - (h / d))) - 1ul, 0xfffffffffffffffful };
+  constexpr uint32_t h_ = h - (h / d);
+  constexpr bool flg = h_ == 64u;
 
-  constexpr uint64_t mask0 = br[(h - (h / d)) == 64u];
+  constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) - 1ul + (1ul << 63) * flg;
   constexpr uint32_t mask1 = (1u << (h / d)) - 1ul;
 
   uint8_t dig[m]{};
