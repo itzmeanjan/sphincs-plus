@@ -6,7 +6,7 @@ DEP_IFLAGS = -I ./sha3/include
 
 all: testing
 
-test/a.out: test/main.cpp include/*.hpp sha3/include/*.hpp
+test/a.out: test/main.cpp include/*/*.hpp sha3/include/*.hpp
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(IFLAGS) $(DEP_IFLAGS) $< -o $@
 
 testing: test/a.out
@@ -17,3 +17,11 @@ clean:
 
 format:
 	find . -name '*.cpp' -o -name '*.hpp' | xargs clang-format -i --style=Mozilla
+
+bench/a.out: bench/main.cpp include/*/*.hpp sha3/include/*.hpp
+	# make sure you've google-benchmark globally installed;
+	# see https://github.com/google/benchmark/tree/2257fa4#installation
+	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(IFLAGS) $(DEP_IFLAGS) $< -lbenchmark -o $@
+
+benchmark: bench/a.out
+	./$<

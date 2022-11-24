@@ -74,6 +74,71 @@ compute_wots_len()
   return len1 + len2;
 }
 
+// Compile-time compute message digest length ( = m ) in bytes, following
+// section 6.1 of SPHINCS+ specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const uint32_t h, const uint32_t d, const uint32_t a, const uint32_t k>
+inline static constexpr size_t
+compute_sphincs_md_len()
+{
+  constexpr uint32_t t0 = (k * a + 7) >> 3;
+  constexpr uint32_t t1 = (h - (h / d) + 7) >> 3;
+  constexpr uint32_t t2 = ((h / d) + 7) >> 3;
+
+  return static_cast<size_t>(t0 + t1 + t2);
+}
+
+// Compile-time compute length of FORS sigature, following section 5.5 of
+// the specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n, const uint32_t a, const uint32_t k>
+inline static constexpr size_t
+compute_fors_sig_len()
+{
+  return n * static_cast<size_t>(k * (a + 1u));
+}
+
+// Compile-time compute length of HyperTree signature, following section 4.2.3
+// of the specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const uint32_t h, const uint32_t d, const size_t n, const size_t w>
+inline static constexpr size_t
+compute_ht_sig_len()
+{
+  constexpr size_t len = compute_wots_len<n, w>();
+  return static_cast<size_t>(h + d * len) * n;
+}
+
+// Compile-time compute length of SPHINCS+ public key; see figure 14 of the
+// specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n>
+inline static constexpr size_t
+get_sphincs_pkey_len()
+{
+  return n + n;
+}
+
+// Compile-time compute length of SPHINCS+ secret key; see figure 14 of the
+// specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n>
+inline static constexpr size_t
+get_sphincs_skey_len()
+{
+  return n + n + get_sphincs_pkey_len<n>();
+}
+
+// Compile-time compute length of SPHINCS+ signature, see figure 15 of the
+// specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n,
+         const uint32_t h,
+         const uint32_t d,
+         const uint32_t a,
+         const uint32_t k,
+         const size_t w>
+inline static constexpr size_t
+get_sphincs_sig_len()
+{
+  return n + compute_fors_sig_len<n, a, k>() + compute_ht_sig_len<h, d, n, w>();
+}
+
 // Given a 32 -bit word, this routine extracts out each byte from that word and
 // places them in a big endian byte array.
 inline static void
