@@ -73,4 +73,45 @@ sign(benchmark::State& state)
   std::free(sig);
 }
 
+// Benchmark SPHINCS+ signature verification algorithm
+template<const size_t n,
+         const uint32_t h,
+         const uint32_t d,
+         const uint32_t a,
+         const uint32_t k,
+         const size_t w,
+         const sphincs_hashing::variant v>
+inline static void
+verify(benchmark::State& state)
+{
+  namespace utils = sphincs_utils;
+  constexpr size_t pklen = utils::get_sphincs_pkey_len<n>();
+  constexpr size_t sklen = utils::get_sphincs_skey_len<n>();
+  constexpr size_t siglen = utils::get_sphincs_sig_len<n, h, d, a, k, w>();
+  constexpr size_t mlen = 32;
+
+  uint8_t* pkey = static_cast<uint8_t*>(std::malloc(pklen));
+  uint8_t* skey = static_cast<uint8_t*>(std::malloc(sklen));
+  uint8_t* msg = static_cast<uint8_t*>(std::malloc(mlen));
+  uint8_t* sig = static_cast<uint8_t*>(std::malloc(siglen));
+
+  sphincs::keygen<n, h, d, w, v>(skey, pkey);
+  sphincs::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, sig);
+
+  for (auto _ : state) {
+    const bool flg = sphincs::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+
+    benchmark::DoNotOptimize(flg);
+    benchmark::DoNotOptimize(msg);
+    benchmark::DoNotOptimize(sig);
+    benchmark::DoNotOptimize(pkey);
+    benchmark::ClobberMemory();
+  }
+
+  std::free(pkey);
+  std::free(skey);
+  std::free(msg);
+  std::free(sig);
+}
+
 }
