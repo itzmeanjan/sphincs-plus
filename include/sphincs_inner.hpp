@@ -76,11 +76,12 @@ template<const size_t n,
          const sphincs_hashing::variant v,
          const bool randomize = false>
 inline static void
-sign(const uint8_t* const __restrict msg,
-     const size_t mlen,
-     const uint8_t* const __restrict skey,
-     const uint8_t* const __restrict rand_bytes,
-     uint8_t* const __restrict sig)
+sign(const uint8_t* const __restrict msg,  // message to be signed
+     const size_t mlen,                    // byte length of message
+     const uint8_t* const __restrict skey, // SPHINCS+ secret key of 4*n -bytes
+     const uint8_t* const __restrict rand_bytes, // Optional n -bytes randomness
+     uint8_t* const __restrict sig               // SPHINCS+ signature
+)
 {
   constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
   constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
@@ -89,7 +90,7 @@ sign(const uint8_t* const __restrict msg,
 
   constexpr size_t fors_sl = sphincs_utils::compute_fors_sig_len<n, a, k>();
 
-  const uint8_t* const sig0 = sig;            // Randomess portion
+  const uint8_t* const sig0 = sig;            // Randomness portion
   const uint8_t* const sig1 = sig0 + n;       // FORS signature portion
   const uint8_t* const sig2 = sig1 + fors_sl; // HT signature portion
 
@@ -144,6 +145,79 @@ sign(const uint8_t* const __restrict msg,
   sphincs_fors::sign<n, a, k, v>(md, sk_seed, pk_seed, adrs, sig1);
   sphincs_fors::pk_from_sig<n, a, k, v>(sig1, md, pk_seed, adrs, tmp);
   sphincs_ht::sign<h, d, n, w, v>(tmp, sk_seed, pk_seed, itree, ileaf, sig2);
+}
+
+// Verifies a SPHINCS+ signature on a message of mlen -bytes using SPHINCS+
+// public key of length 2*n -bytes, returning truth value ( boolean result ) in
+// case of successful signature verification, following algorithm 21, as
+// described in section 6.5 of specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n,
+         const uint32_t h,
+         const uint32_t d,
+         const uint32_t a,
+         const uint32_t k,
+         const size_t w,
+         const sphincs_hashing::variant v>
+inline static bool
+verify(const uint8_t* const __restrict msg, // message which was signed
+       const size_t mlen,                   // byte length of message
+       const uint8_t* const __restrict sig, // SPHINCS+ signature
+       const uint8_t* const __restrict pkey // SPHINCS+ public key of 2*n -bytes
+)
+{
+  constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
+  constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
+  constexpr size_t ileaf_len = static_cast<size_t>(((h / d) + 7) >> 3);
+  constexpr size_t m = md_len + itree_len + ileaf_len;
+
+  constexpr size_t fors_sl = sphincs_utils::compute_fors_sig_len<n, a, k>();
+
+  const uint8_t* const sig0 = sig;            // Randomness portion
+  const uint8_t* const sig1 = sig0 + n;       // FORS signature portion
+  const uint8_t* const sig2 = sig1 + fors_sl; // HT signature portion
+
+  const uint8_t* const pk_seed = pkey;
+  const uint8_t* const pk_root = pk_seed + n;
+
+  constexpr uint64_t br[]{ (1ul << (h - (h / d))) - 1ul, 0xfffffffffffffffful };
+
+  constexpr uint64_t mask0 = br[(h - (h / d)) == 64u];
+  constexpr uint32_t mask1 = (1u << (h / d)) - 1ul;
+
+  uint8_t dig[m]{};
+  sphincs_hashing::h_msg<n, m>(sig0, pk_seed, pk_root, msg, mlen, dig);
+
+  const uint8_t* const md = dig;
+  const uint8_t* const tmp_itree = md + md_len;
+  const uint8_t* const tmp_ileaf = tmp_itree + itree_len;
+
+  uint64_t itree = 0ul;
+  for (size_t i = 0; i < itree_len; i++) {
+    itree |= tmp_itree[i] << (i << 3);
+  }
+
+  uint32_t ileaf = 0u;
+  for (size_t i = 0; i < ileaf_len; i++) {
+    ileaf |= tmp_ileaf[i] << (i << 3);
+  }
+
+  itree &= mask0;
+  ileaf &= mask1;
+
+  sphincs_adrs::fors_tree_t adrs{};
+
+  adrs.set_layer_address(0u);
+  adrs.set_tree_address(itree);
+  adrs.set_type(sphincs_adrs::type_t::FORS_TREE);
+  adrs.set_keypair_address(ileaf);
+
+  uint8_t tmp[n]{};
+
+  sphincs_fors::pk_from_sig<n, a, k, v>(sig1, md, pk_seed, adrs, tmp);
+
+  namespace ht = sphincs_ht;
+  return ht::verify<h, d, n, w, v>(tmp, sig2, pk_seed, itree, ileaf, pk_root);
 }
 
 }
