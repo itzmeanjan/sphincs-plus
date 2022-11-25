@@ -24,4 +24,4 @@ bench/a.out: bench/main.cpp include/*/*.hpp sha3/include/*.hpp
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(IFLAGS) $(DEP_IFLAGS) $< -lbenchmark -o $@
 
 benchmark: bench/a.out
-	./$<
+	./$< --benchmark_time_unit=ms
