@@ -37,6 +37,8 @@ test_sphincs_plus(const size_t mlen)
   uint8_t* msg = static_cast<uint8_t*>(std::malloc(mlen));
   uint8_t* sig = static_cast<uint8_t*>(std::malloc(siglen));
 
+  sphincs_utils::random_data<uint8_t>(msg, mlen);
+
   sphincs::keygen<n, h, d, w, v>(skey, pkey);
   sphincs::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, sig);
   const bool flg = sphincs::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
