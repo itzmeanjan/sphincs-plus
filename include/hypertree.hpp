@@ -55,6 +55,7 @@ sign(const uint8_t* const __restrict msg, // n -bytes message ( to be signed )
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
   constexpr uint32_t h_ = h / d;
+  constexpr uint32_t mask = (1u << h_) - 1u;
   constexpr size_t xmss_sig_len = (static_cast<size_t>(h_) + len) * n;
 
   sphincs_adrs::adrs_t adrs{};
@@ -70,14 +71,11 @@ sign(const uint8_t* const __restrict msg, // n -bytes message ( to be signed )
   uint32_t ileaf = idx_leaf;
 
   for (uint32_t j = 1; j < d; j++) {
-    constexpr uint32_t mask = (1u << h_) - 1u;
-    const uint32_t boff = h - (j + 1) * h_;
-
     const size_t off = static_cast<size_t>(j) * xmss_sig_len;
     uint8_t* const sig_ = sig + off;
 
     ileaf = static_cast<uint32_t>(itree) & mask;
-    itree = itree >> (64u - boff);
+    itree = itree >> h_;
 
     adrs.set_layer_address(j);
     adrs.set_tree_address(itree);
@@ -116,6 +114,7 @@ verify(const uint8_t* const __restrict msg,
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
   constexpr uint32_t h_ = h / d;
+  constexpr uint32_t mask = (1u << h_) - 1u;
   constexpr size_t xmss_sig_len = (static_cast<size_t>(h_) + len) * n;
 
   sphincs_adrs::adrs_t adrs{};
@@ -131,14 +130,11 @@ verify(const uint8_t* const __restrict msg,
   uint32_t ileaf = idx_leaf;
 
   for (uint32_t j = 1; j < d; j++) {
-    constexpr uint32_t mask = (1u << h_) - 1u;
-    const uint32_t boff = h - (j + 1) * h_;
-
     const size_t off = static_cast<size_t>(j) * xmss_sig_len;
     const uint8_t* const sig_ = sig + off;
 
     ileaf = static_cast<uint32_t>(itree) & mask;
-    itree = itree >> (64u - boff);
+    itree = itree >> h_;
 
     adrs.set_layer_address(j);
     adrs.set_tree_address(itree);

@@ -1,7 +1,6 @@
 #pragma once
 #include "fors.hpp"
 #include "hypertree.hpp"
-#include <iostream>
 
 // SPHINCS+ Signature Scheme, with generic API
 namespace sphincs_inner {
