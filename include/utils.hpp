@@ -264,7 +264,7 @@ extract_contiguous_bits_as_u32(
     const uint32_t bit_off = i & 7u;
 
     const uint8_t bit = (msg[byte_off] >> bit_off) & mask;
-    res |= static_cast<uint32_t>(bit) << (bits - (i - frm_idx) - 1u);
+    res |= static_cast<uint32_t>(bit) << (i - frm_idx);
   }
 
   return res;
