@@ -193,26 +193,7 @@ h(const uint8_t* const __restrict pk_seed,
   const uint8_t* const __restrict msg,
   uint8_t* const __restrict dig)
 {
-  shake256::shake256<true> hasher{};
-
-  hasher.absorb(pk_seed, n);
-  hasher.absorb(adrs, 32);
-
-  if constexpr (v == variant::robust) {
-    uint8_t masked[n]{};
-
-    gen_mask<n, 1>(pk_seed, adrs, msg + 0, masked);
-    hasher.absorb(masked, n);
-
-    gen_mask<n, 1>(pk_seed, adrs, msg + n, masked);
-    hasher.absorb(masked, n);
-  } else {
-    hasher.absorb(msg, n + n);
-  }
-
-  hasher.finalize();
-
-  hasher.read(dig, n);
+  t_l<n, 2, v>(pk_seed, adrs, msg, dig);
 }
 
 }
