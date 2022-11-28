@@ -1,6 +1,7 @@
 #pragma once
 #include "fors.hpp"
 #include "hypertree.hpp"
+#include <iostream>
 
 // SPHINCS+ Signature Scheme, with generic API
 namespace sphincs_inner {
@@ -102,7 +103,7 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
   constexpr uint32_t h_ = h - (h / d);
   constexpr bool flg = h_ == 64u;
 
-  constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) - 1ul + (1ul << 63) * flg;
+  constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) + (1ul << 63) * flg - 1ul;
   constexpr uint32_t mask1 = (1u << (h / d)) - 1ul;
 
   uint8_t opt[n]{};
@@ -123,12 +124,12 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
 
   uint64_t itree = 0ul;
   for (size_t i = 0; i < itree_len; i++) {
-    itree |= tmp_itree[i] << (i << 3);
+    itree |= static_cast<uint64_t>(tmp_itree[i]) << ((itree_len - 1 - i) << 3);
   }
 
   uint32_t ileaf = 0u;
   for (size_t i = 0; i < ileaf_len; i++) {
-    ileaf |= tmp_ileaf[i] << (i << 3);
+    ileaf |= static_cast<uint32_t>(tmp_ileaf[i]) << ((ileaf_len - 1 - i) << 3);
   }
 
   itree &= mask0;
@@ -184,7 +185,7 @@ verify(const uint8_t* const __restrict msg, // message which was signed
   constexpr uint32_t h_ = h - (h / d);
   constexpr bool flg = h_ == 64u;
 
-  constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) - 1ul + (1ul << 63) * flg;
+  constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) + (1ul << 63) * flg - 1ul;
   constexpr uint32_t mask1 = (1u << (h / d)) - 1ul;
 
   uint8_t dig[m]{};
@@ -196,12 +197,12 @@ verify(const uint8_t* const __restrict msg, // message which was signed
 
   uint64_t itree = 0ul;
   for (size_t i = 0; i < itree_len; i++) {
-    itree |= tmp_itree[i] << (i << 3);
+    itree |= static_cast<uint64_t>(tmp_itree[i]) << ((itree_len - 1 - i) << 3);
   }
 
   uint32_t ileaf = 0u;
   for (size_t i = 0; i < ileaf_len; i++) {
-    ileaf |= tmp_ileaf[i] << (i << 3);
+    ileaf |= static_cast<uint32_t>(tmp_ileaf[i]) << ((ileaf_len - 1 - i) << 3);
   }
 
   itree &= mask0;
