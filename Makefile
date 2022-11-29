@@ -6,6 +6,11 @@ DEP_IFLAGS = -I ./sha3/include
 
 all: testing
 
+wrapper/libsphincs+-shake.so: wrapper/sphincs+-shake.cpp include/*.hpp sha3/include/*.hpp
+	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(IFLAGS) $(DEP_IFLAGS) -fPIC --shared $< -o $@
+
+lib: wrapper/libsphincs+-shake.so
+
 test/a.out: test/main.cpp include/*/*.hpp sha3/include/*.hpp
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(IFLAGS) $(DEP_IFLAGS) $< -o $@
 
