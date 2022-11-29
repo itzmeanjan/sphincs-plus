@@ -121,9 +121,9 @@ def test_sphincs_shake_128s_simple():
             pkey = pk_seed + pk_root
             skey = sk_seed + sk_prf + pkey
 
-            keys = spx.sphincs_shake_128s_robust_keygen(sk_seed, sk_prf, pk_seed)
-            sig_ = spx.sphincs_shake_128s_robust_sign(msg, mlen, keys[0], opt)
-            verified = spx.sphincs_shake_128s_robust_verify(msg, mlen, sig_, keys[1])
+            keys = spx.sphincs_shake_128s_simple_keygen(sk_seed, sk_prf, pk_seed)
+            sig_ = spx.sphincs_shake_128s_simple_sign(msg, mlen, keys[0], opt)
+            verified = spx.sphincs_shake_128s_simple_verify(msg, mlen, sig_, keys[1])
 
             assert verified, f"[{alg}] Failed to verify signature"
             assert pkey == keys[1], f"[{alg}] Public key doesn't match"
@@ -181,9 +181,9 @@ def test_sphincs_shake_128f_robust():
             pkey = pk_seed + pk_root
             skey = sk_seed + sk_prf + pkey
 
-            keys = spx.sphincs_shake_128s_robust_keygen(sk_seed, sk_prf, pk_seed)
-            sig_ = spx.sphincs_shake_128s_robust_sign(msg, mlen, keys[0], opt)
-            verified = spx.sphincs_shake_128s_robust_verify(msg, mlen, sig_, keys[1])
+            keys = spx.sphincs_shake_128f_robust_keygen(sk_seed, sk_prf, pk_seed)
+            sig_ = spx.sphincs_shake_128f_robust_sign(msg, mlen, keys[0], opt)
+            verified = spx.sphincs_shake_128f_robust_verify(msg, mlen, sig_, keys[1])
 
             assert verified, f"[{alg}] Failed to verify signature"
             assert pkey == keys[1], f"[{alg}] Public key doesn't match"
@@ -241,9 +241,9 @@ def test_sphincs_shake_128f_simple():
             pkey = pk_seed + pk_root
             skey = sk_seed + sk_prf + pkey
 
-            keys = spx.sphincs_shake_128s_robust_keygen(sk_seed, sk_prf, pk_seed)
-            sig_ = spx.sphincs_shake_128s_robust_sign(msg, mlen, keys[0], opt)
-            verified = spx.sphincs_shake_128s_robust_verify(msg, mlen, sig_, keys[1])
+            keys = spx.sphincs_shake_128f_simple_keygen(sk_seed, sk_prf, pk_seed)
+            sig_ = spx.sphincs_shake_128f_simple_sign(msg, mlen, keys[0], opt)
+            verified = spx.sphincs_shake_128f_simple_verify(msg, mlen, sig_, keys[1])
 
             assert verified, f"[{alg}] Failed to verify signature"
             assert pkey == keys[1], f"[{alg}] Public key doesn't match"
