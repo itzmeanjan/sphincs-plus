@@ -172,6 +172,82 @@ def sphincs_shake_192f_simple_keygen(
     return skey.raw, pkey.raw
 
 
+def sphincs_shake_256s_robust_keygen(
+    sk_seed: bytes, sk_prf: bytes, pk_seed: bytes
+) -> Tuple[bytes, bytes]:
+    """
+    Given 32 -bytes secret key seed, 32 -bytes secret key PRF and 32 -bytes
+    public key seed, this routine compute 128 -bytes secret key and 64 -bytes
+    public key, using SPHINCS+-SHAKE-256s-robust keygen algorithm
+    """
+    skey = create_string_buffer(128)
+    pkey = create_string_buffer(64)
+
+    args = [c_char_p, c_char_p, c_char_p, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256s_robust_keygen.argtypes = args
+
+    SO_LIB.sphincs_shake_256s_robust_keygen(sk_seed, sk_prf, pk_seed, skey, pkey)
+
+    return skey.raw, pkey.raw
+
+
+def sphincs_shake_256s_simple_keygen(
+    sk_seed: bytes, sk_prf: bytes, pk_seed: bytes
+) -> Tuple[bytes, bytes]:
+    """
+    Given 32 -bytes secret key seed, 32 -bytes secret key PRF and 32 -bytes
+    public key seed, this routine compute 128 -bytes secret key and 64 -bytes
+    public key, using SPHINCS+-SHAKE-256s-simple keygen algorithm
+    """
+    skey = create_string_buffer(128)
+    pkey = create_string_buffer(64)
+
+    args = [c_char_p, c_char_p, c_char_p, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256s_simple_keygen.argtypes = args
+
+    SO_LIB.sphincs_shake_256s_simple_keygen(sk_seed, sk_prf, pk_seed, skey, pkey)
+
+    return skey.raw, pkey.raw
+
+
+def sphincs_shake_256f_robust_keygen(
+    sk_seed: bytes, sk_prf: bytes, pk_seed: bytes
+) -> Tuple[bytes, bytes]:
+    """
+    Given 32 -bytes secret key seed, 32 -bytes secret key PRF and 32 -bytes
+    public key seed, this routine compute 128 -bytes secret key and 64 -bytes
+    public key, using SPHINCS+-SHAKE-256f-robust keygen algorithm
+    """
+    skey = create_string_buffer(128)
+    pkey = create_string_buffer(64)
+
+    args = [c_char_p, c_char_p, c_char_p, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256f_robust_keygen.argtypes = args
+
+    SO_LIB.sphincs_shake_256f_robust_keygen(sk_seed, sk_prf, pk_seed, skey, pkey)
+
+    return skey.raw, pkey.raw
+
+
+def sphincs_shake_256f_simple_keygen(
+    sk_seed: bytes, sk_prf: bytes, pk_seed: bytes
+) -> Tuple[bytes, bytes]:
+    """
+    Given 32 -bytes secret key seed, 32 -bytes secret key PRF and 32 -bytes
+    public key seed, this routine compute 128 -bytes secret key and 64 -bytes
+    public key, using SPHINCS+-SHAKE-256f-simple keygen algorithm
+    """
+    skey = create_string_buffer(128)
+    pkey = create_string_buffer(64)
+
+    args = [c_char_p, c_char_p, c_char_p, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256f_simple_keygen.argtypes = args
+
+    SO_LIB.sphincs_shake_256f_simple_keygen(sk_seed, sk_prf, pk_seed, skey, pkey)
+
+    return skey.raw, pkey.raw
+
+
 def sphincs_shake_128s_robust_sign(
     msg: bytes, mlen: int, skey: bytes, rbytes: bytes
 ) -> bytes:
@@ -316,6 +392,78 @@ def sphincs_shake_192f_simple_sign(
     return sig.raw
 
 
+def sphincs_shake_256s_robust_sign(
+    msg: bytes, mlen: int, skey: bytes, rbytes: bytes
+) -> bytes:
+    """
+    Given mlen -bytes message, 128 -bytes secret key and 32 -bytes signature
+    randomization seed, this routine computes SPHINCS+ signature using
+    SPHINCS+-SHAKE-256s-robust signing algorithm
+    """
+    sig = create_string_buffer(29792)
+
+    args = [c_char_p, c_size_t, c_char_p, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256s_robust_sign.argtypes = args
+
+    SO_LIB.sphincs_shake_256s_robust_sign(msg, mlen, skey, rbytes, sig)
+
+    return sig.raw
+
+
+def sphincs_shake_256s_simple_sign(
+    msg: bytes, mlen: int, skey: bytes, rbytes: bytes
+) -> bytes:
+    """
+    Given mlen -bytes message, 128 -bytes secret key and 32 -bytes signature
+    randomization seed, this routine computes SPHINCS+ signature using
+    SPHINCS+-SHAKE-256s-simple signing algorithm
+    """
+    sig = create_string_buffer(29792)
+
+    args = [c_char_p, c_size_t, c_char_p, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256s_simple_sign.argtypes = args
+
+    SO_LIB.sphincs_shake_256s_simple_sign(msg, mlen, skey, rbytes, sig)
+
+    return sig.raw
+
+
+def sphincs_shake_256f_robust_sign(
+    msg: bytes, mlen: int, skey: bytes, rbytes: bytes
+) -> bytes:
+    """
+    Given mlen -bytes message, 128 -bytes secret key and 32 -bytes signature
+    randomization seed, this routine computes SPHINCS+ signature using
+    SPHINCS+-SHAKE-256f-robust signing algorithm
+    """
+    sig = create_string_buffer(49856)
+
+    args = [c_char_p, c_size_t, c_char_p, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256f_robust_sign.argtypes = args
+
+    SO_LIB.sphincs_shake_256f_robust_sign(msg, mlen, skey, rbytes, sig)
+
+    return sig.raw
+
+
+def sphincs_shake_256f_simple_sign(
+    msg: bytes, mlen: int, skey: bytes, rbytes: bytes
+) -> bytes:
+    """
+    Given mlen -bytes message, 128 -bytes secret key and 32 -bytes signature
+    randomization seed, this routine computes SPHINCS+ signature using
+    SPHINCS+-SHAKE-256f-simple signing algorithm
+    """
+    sig = create_string_buffer(49856)
+
+    args = [c_char_p, c_size_t, c_char_p, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256f_simple_sign.argtypes = args
+
+    SO_LIB.sphincs_shake_256f_simple_sign(msg, mlen, skey, rbytes, sig)
+
+    return sig.raw
+
+
 def sphincs_shake_128s_robust_verify(
     msg: bytes, mlen: int, sig: bytes, pkey: bytes
 ) -> bool:
@@ -441,6 +589,70 @@ def sphincs_shake_192f_simple_verify(
     SO_LIB.sphincs_shake_192f_simple_verify.restype = c_bool
 
     verified = SO_LIB.sphincs_shake_192f_simple_verify(msg, mlen, sig, pkey)
+    return verified
+
+
+def sphincs_shake_256s_robust_verify(
+    msg: bytes, mlen: int, sig: bytes, pkey: bytes
+) -> bool:
+    """
+    Given mlen -bytes message, SPHINCS+ signature and 64 -bytes public key,
+    this routine verifies signature using SPHINCS+-SHAKE-256s-robust algorithm
+    and returns boolean truth value if signature verification succeeds
+    """
+    args = [c_char_p, c_size_t, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256s_robust_verify.argtypes = args
+    SO_LIB.sphincs_shake_256s_robust_verify.restype = c_bool
+
+    verified = SO_LIB.sphincs_shake_256s_robust_verify(msg, mlen, sig, pkey)
+    return verified
+
+
+def sphincs_shake_256s_simple_verify(
+    msg: bytes, mlen: int, sig: bytes, pkey: bytes
+) -> bool:
+    """
+    Given mlen -bytes message, SPHINCS+ signature and 64 -bytes public key,
+    this routine verifies signature using SPHINCS+-SHAKE-256s-simple algorithm
+    and returns boolean truth value if signature verification succeeds
+    """
+    args = [c_char_p, c_size_t, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256s_simple_verify.argtypes = args
+    SO_LIB.sphincs_shake_256s_simple_verify.restype = c_bool
+
+    verified = SO_LIB.sphincs_shake_256s_simple_verify(msg, mlen, sig, pkey)
+    return verified
+
+
+def sphincs_shake_256f_robust_verify(
+    msg: bytes, mlen: int, sig: bytes, pkey: bytes
+) -> bool:
+    """
+    Given mlen -bytes message, SPHINCS+ signature and 64 -bytes public key,
+    this routine verifies signature using SPHINCS+-SHAKE-256f-robust algorithm
+    and returns boolean truth value if signature verification succeeds
+    """
+    args = [c_char_p, c_size_t, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256f_robust_verify.argtypes = args
+    SO_LIB.sphincs_shake_256f_robust_verify.restype = c_bool
+
+    verified = SO_LIB.sphincs_shake_256f_robust_verify(msg, mlen, sig, pkey)
+    return verified
+
+
+def sphincs_shake_256f_simple_verify(
+    msg: bytes, mlen: int, sig: bytes, pkey: bytes
+) -> bool:
+    """
+    Given mlen -bytes message, SPHINCS+ signature and 64 -bytes public key,
+    this routine verifies signature using SPHINCS+-SHAKE-256f-simple algorithm
+    and returns boolean truth value if signature verification succeeds
+    """
+    args = [c_char_p, c_size_t, c_char_p, c_char_p]
+    SO_LIB.sphincs_shake_256f_simple_verify.argtypes = args
+    SO_LIB.sphincs_shake_256f_simple_verify.restype = c_bool
+
+    verified = SO_LIB.sphincs_shake_256f_simple_verify(msg, mlen, sig, pkey)
     return verified
 
 
