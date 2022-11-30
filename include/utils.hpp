@@ -1,4 +1,5 @@
 #pragma once
+#include "hashing.hpp"
 #include <array>
 #include <bit>
 #include <cassert>
@@ -12,6 +13,31 @@
 
 // Utility functions for SPHINCS+
 namespace sphincs_utils {
+
+// Compile-time check to ensure that SPHINCS+ key generation function is invoked
+// with parameter sets suggested in table 3 of the specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n,
+         const uint32_t h,
+         const uint32_t d,
+         const size_t w,
+         const sphincs_hashing::variant v>
+inline static constexpr bool
+check_keygen_params()
+{
+  constexpr bool flg0 = w == 16;
+  constexpr bool flg1 = (v == sphincs_hashing::variant::robust) ||
+                        (v == sphincs_hashing::variant::simple);
+
+  constexpr bool flg2 = (n == 16) && (h == 63) && (d == 7) && flg0 && flg1;
+  constexpr bool flg3 = (n == 16) && (h == 66) && (d == 22) && flg0 && flg1;
+  constexpr bool flg4 = (n == 24) && (h == 63) && (d == 7) && flg0 && flg1;
+  constexpr bool flg5 = (n == 24) && (h == 66) && (d == 22) && flg0 && flg1;
+  constexpr bool flg6 = (n == 32) && (h == 64) && (d == 8) && flg0 && flg1;
+  constexpr bool flg7 = (n == 32) && (h == 68) && (d == 17) && flg0 && flg1;
+
+  return flg2 || flg3 || flg4 || flg5 || flg6 || flg7;
+}
 
 // Compile-time check to ensure that `w` parameter takes only allowed values.
 //

@@ -35,7 +35,8 @@ keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
        const uint8_t* const __restrict pk_seed, // n -bytes public key seed
        uint8_t* const __restrict skey, // 4*n -bytes SPHINCS+ secret key
        uint8_t* const __restrict pkey  // 2*n -bytes SPHINCS+ public key
-)
+       )
+  requires(sphincs_utils::check_keygen_params<n, h, d, w, v>())
 {
   uint8_t pk_root[n]{};
   sphincs_ht::pkgen<h, d, n, w, v>(sk_seed, pk_seed, pk_root);
