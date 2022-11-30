@@ -39,8 +39,8 @@ check_keygen_params()
   return (flg2 | flg3 | flg4 | flg5 | flg6 | flg7) & flg0 & flg1;
 }
 
-// Compile-time check to ensure that SPHINCS+ sign function is only invoked
-// with parameter sets suggested in table 3 of the specification
+// Compile-time check to ensure that SPHINCS+ sign/ verify function is only
+// invoked with parameter sets suggested in table 3 of the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<const size_t n,
          const uint32_t h,
@@ -50,7 +50,7 @@ template<const size_t n,
          const size_t w,
          const sphincs_hashing::variant v>
 inline static constexpr bool
-check_sign_params()
+check_sign_verify_params()
 {
   constexpr bool flg0 = w == 16;
   constexpr bool flg1 = (v == sphincs_hashing::variant::robust) ||

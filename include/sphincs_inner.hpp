@@ -83,7 +83,7 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
      const uint8_t* const __restrict rand_bytes, // Optional n -bytes randomness
      uint8_t* const __restrict sig               // SPHINCS+ signature
      )
-  requires(sphincs_utils::check_sign_params<n, h, d, a, k, w, v>())
+  requires(sphincs_utils::check_sign_verify_params<n, h, d, a, k, w, v>())
 {
   constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
   constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
@@ -167,7 +167,8 @@ verify(const uint8_t* const __restrict msg, // message which was signed
        const size_t mlen,                   // byte length of message
        const uint8_t* const __restrict sig, // SPHINCS+ signature
        const uint8_t* const __restrict pkey // SPHINCS+ public key of 2*n -bytes
-)
+       )
+  requires(sphincs_utils::check_sign_verify_params<n, h, d, a, k, w, v>())
 {
   constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
   constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
