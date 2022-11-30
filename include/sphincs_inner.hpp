@@ -35,7 +35,8 @@ keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
        const uint8_t* const __restrict pk_seed, // n -bytes public key seed
        uint8_t* const __restrict skey, // 4*n -bytes SPHINCS+ secret key
        uint8_t* const __restrict pkey  // 2*n -bytes SPHINCS+ public key
-)
+       )
+  requires(sphincs_utils::check_keygen_params<n, h, d, w, v>())
 {
   uint8_t pk_root[n]{};
   sphincs_ht::pkgen<h, d, n, w, v>(sk_seed, pk_seed, pk_root);
@@ -81,7 +82,8 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
      const uint8_t* const __restrict skey, // SPHINCS+ secret key of 4*n -bytes
      const uint8_t* const __restrict rand_bytes, // Optional n -bytes randomness
      uint8_t* const __restrict sig               // SPHINCS+ signature
-)
+     )
+  requires(sphincs_utils::check_sign_verify_params<n, h, d, a, k, w, v>())
 {
   constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
   constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
@@ -102,7 +104,7 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
   constexpr uint32_t h_ = h - (h / d);
   constexpr bool flg = h_ == 64u;
 
-  constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) - 1ul + (1ul << 63) * flg;
+  constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) + (1ul << 63) * flg - 1ul;
   constexpr uint32_t mask1 = (1u << (h / d)) - 1ul;
 
   uint8_t opt[n]{};
@@ -123,12 +125,12 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
 
   uint64_t itree = 0ul;
   for (size_t i = 0; i < itree_len; i++) {
-    itree |= tmp_itree[i] << (i << 3);
+    itree |= static_cast<uint64_t>(tmp_itree[i]) << ((itree_len - 1 - i) << 3);
   }
 
   uint32_t ileaf = 0u;
   for (size_t i = 0; i < ileaf_len; i++) {
-    ileaf |= tmp_ileaf[i] << (i << 3);
+    ileaf |= static_cast<uint32_t>(tmp_ileaf[i]) << ((ileaf_len - 1 - i) << 3);
   }
 
   itree &= mask0;
@@ -165,7 +167,8 @@ verify(const uint8_t* const __restrict msg, // message which was signed
        const size_t mlen,                   // byte length of message
        const uint8_t* const __restrict sig, // SPHINCS+ signature
        const uint8_t* const __restrict pkey // SPHINCS+ public key of 2*n -bytes
-)
+       )
+  requires(sphincs_utils::check_sign_verify_params<n, h, d, a, k, w, v>())
 {
   constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
   constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
@@ -184,7 +187,7 @@ verify(const uint8_t* const __restrict msg, // message which was signed
   constexpr uint32_t h_ = h - (h / d);
   constexpr bool flg = h_ == 64u;
 
-  constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) - 1ul + (1ul << 63) * flg;
+  constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) + (1ul << 63) * flg - 1ul;
   constexpr uint32_t mask1 = (1u << (h / d)) - 1ul;
 
   uint8_t dig[m]{};
@@ -196,12 +199,12 @@ verify(const uint8_t* const __restrict msg, // message which was signed
 
   uint64_t itree = 0ul;
   for (size_t i = 0; i < itree_len; i++) {
-    itree |= tmp_itree[i] << (i << 3);
+    itree |= static_cast<uint64_t>(tmp_itree[i]) << ((itree_len - 1 - i) << 3);
   }
 
   uint32_t ileaf = 0u;
   for (size_t i = 0; i < ileaf_len; i++) {
-    ileaf |= tmp_ileaf[i] << (i << 3);
+    ileaf |= static_cast<uint32_t>(tmp_ileaf[i]) << ((ileaf_len - 1 - i) << 3);
   }
 
   itree &= mask0;

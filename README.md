@@ -18,13 +18,13 @@ SPHINCS+ DSA offers following three APIs
 > SPHINCS+ secret key holds a copy of public key, which is used when signing messages.
 
 - `sign`: Given M ( > 0 ) -bytes message, SPHINCS+ secret key ( of 4n -bytes ) is used for signing message, by default deterministically. Though one might specifically ask for randomized signing, which will produce random signatures for same message. 
-- `verify`: Given M ( > 0 ) -bytes message and SPHINCS+ signature, it uses SPHINCS+ public key ( of 2n -bytes ) for verifying signature, returning boolean result. Truth value is returned in successful verification of signature.
+- `verify`: Given M ( > 0 ) -bytes message and SPHINCS+ signature, it uses SPHINCS+ public key ( of 2n -bytes ) for verifying signature, returning boolean result. Truth value is returned if signature is successfully verified.
 
 Here I'm maintaining SPHINCS+ as zero-dependency, header-only and easy-to-use C++ library, which implements SPHINCS+-SHAKE key generation/ signing/ verification algorithms, for all parameter sets ( encompassing NIST security levels {1, 3, 5} ), as suggested in section 7.2 and table 3 of the specification. 
 
 *Find the SPHINCS+ specification [here](https://sphincs.org/data/sphincs+-r3.1-specification.pdf), which was followed during this work.*
 
-`sha3` is the only dependency of this project, which itself is a zero-dependency, header-only C++ library, implementing SHA3 specification of NIST ( i.e. FIPS PUB 202 ). This is done in order to modularize commonly seen symmetric key dependency in post-quantum cryptographic constructions.
+`sha3` is the only dependency of this project, which itself is a zero-dependency, header-only C++ library, implementing SHA3 specification of NIST ( i.e. [FIPS PUB 202](http://dx.doi.org/10.6028/NIST.FIPS.202) ). This is done in order to modularize commonly seen symmetric key dependency in post-quantum cryptographic constructions.
 
 > `sha3` is pinned to specific commit, using git submodule. See [usage](#usage) below in order to understand how to use SPHINCS+ in your project.
 
@@ -45,7 +45,7 @@ $ g++ --version
 g++ (Ubuntu 11.2.0-19ubuntu1) 11.2.0
 ```
 
-- System development utilities
+- System development utilities such as `make`, `cmake` & `git`
 
 ```bash
 $ make --version
@@ -71,11 +71,11 @@ git submodule update --init
 
 ## Testing
 
-For ensuring that SPHINCS+ implementation is functionally correct, you may issue
+For ensuring that SPHINCS+ implementation is functionally correct and compliant with specification, you may issue
 
 >**Note**
 
-> This implementation of SPHINCS+ specification is not yet **tested** to be compatible and conformant with latest version of specification. Ensuring that using known answer tests (KATs) is work-in-progress.
+> This implementation of SPHINCS+ specification is **tested** to be compatible and conformant with latest version of the specification. That's ensured by generating known answer tests ( KATs ) following https://gist.github.com/itzmeanjan/d483872509b8a1a7c4d6614ec9d43e6c and testing this implementation using those test vectors.
 
 ```bash
 make
@@ -85,6 +85,32 @@ make
 [test] HyperTree signature
 [test] FORS signature
 [test] SPHINCS+ signature
+bash test_kat.sh
+clang++ -std=c++20 -Wall -Wextra -pedantic -O3 -march=native -I ./include -I ./sha3/include -fPIC --shared wrapper/sphincs+-shake.cpp -o wrapper/libsphincs+-shake.so
+~/Documents/work/sphincs/wrapper/python ~/Documents/work/sphincs
+=========================================================================================== test session starts ============================================================================================
+platform darwin -- Python 3.10.8, pytest-7.1.3, pluggy-1.0.0 -- /usr/local/opt/python@3.10/bin/python3.10
+cachedir: .pytest_cache
+benchmark: 3.4.1 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /Users/anjan/Documents/work/sphincs/wrapper/python
+plugins: benchmark-3.4.1
+collected 12 items
+
+test_sphincs_shake.py::test_sphincs_shake_128s_robust PASSED                                                                                                                                         [  8%]
+test_sphincs_shake.py::test_sphincs_shake_128s_simple PASSED                                                                                                                                         [ 16%]
+test_sphincs_shake.py::test_sphincs_shake_128f_robust PASSED                                                                                                                                         [ 25%]
+test_sphincs_shake.py::test_sphincs_shake_128f_simple PASSED                                                                                                                                         [ 33%]
+test_sphincs_shake.py::test_sphincs_shake_192s_robust PASSED                                                                                                                                         [ 41%]
+test_sphincs_shake.py::test_sphincs_shake_192s_simple PASSED                                                                                                                                         [ 50%]
+test_sphincs_shake.py::test_sphincs_shake_192f_robust PASSED                                                                                                                                         [ 58%]
+test_sphincs_shake.py::test_sphincs_shake_192f_simple PASSED                                                                                                                                         [ 66%]
+test_sphincs_shake.py::test_sphincs_shake_256s_robust PASSED                                                                                                                                         [ 75%]
+test_sphincs_shake.py::test_sphincs_shake_256s_simple PASSED                                                                                                                                         [ 83%]
+test_sphincs_shake.py::test_sphincs_shake_256f_robust PASSED                                                                                                                                         [ 91%]
+test_sphincs_shake.py::test_sphincs_shake_256f_simple PASSED                                                                                                                                         [100%]
+
+===================================================================================== 12 passed in 1275.34s (0:21:15) ======================================================================================
+~/Documents/work/sphincs
 ```
 
 ## Benchmarking
@@ -98,7 +124,7 @@ make benchmark
 
 >**Warning**
 
-> CPU frequency scaling based on demand must be disabled when collecting benchmark results, you may follow [this](https://github.com/google/benchmark/blob/2257fa4/docs/user_guide.md#disabling-cpu-frequency-scaling) guide for doing so.
+> CPU frequency scaling based on demand **must** be disabled when collecting benchmark results, you may follow [this](https://github.com/google/benchmark/blob/2257fa4/docs/user_guide.md#disabling-cpu-frequency-scaling) guide for doing so.
 
 ### On Intel(R) Core(TM) i5-8279U CPU @ 2.40GHz [ compiled with Clang ]
 

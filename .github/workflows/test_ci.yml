@@ -19,7 +19,7 @@ jobs:
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9
     - name: Fetch Dependency
       run: git submodule update --init
-    - name: Execute Tests
-      run: make
+    - name: Execute Tests ( ignore KATs )
+      run: make testing
     - name: Cleanup
       run: make clean

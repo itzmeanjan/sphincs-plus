@@ -1,4 +1,5 @@
 #pragma once
+#include "hashing.hpp"
 #include <array>
 #include <bit>
 #include <cassert>
@@ -12,6 +13,70 @@
 
 // Utility functions for SPHINCS+
 namespace sphincs_utils {
+
+// Compile-time check to ensure that SPHINCS+ key generation function is only
+// invoked with parameter sets suggested in table 3 of the specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n,
+         const uint32_t h,
+         const uint32_t d,
+         const size_t w,
+         const sphincs_hashing::variant v>
+inline static constexpr bool
+check_keygen_params()
+{
+  constexpr bool flg0 = w == 16;
+  constexpr bool flg1 = (v == sphincs_hashing::variant::robust) |
+                        (v == sphincs_hashing::variant::simple);
+
+  constexpr bool flg2 = (n == 16) & (h == 63) & (d == 7);
+  constexpr bool flg3 = (n == 16) & (h == 66) & (d == 22);
+  constexpr bool flg4 = (n == 24) & (h == 63) & (d == 7);
+  constexpr bool flg5 = (n == 24) & (h == 66) & (d == 22);
+  constexpr bool flg6 = (n == 32) & (h == 64) & (d == 8);
+  constexpr bool flg7 = (n == 32) & (h == 68) & (d == 17);
+
+  return (flg2 | flg3 | flg4 | flg5 | flg6 | flg7) & flg0 & flg1;
+}
+
+// Compile-time check to ensure that SPHINCS+ sign/ verify function is only
+// invoked with parameter sets suggested in table 3 of the specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+template<const size_t n,
+         const uint32_t h,
+         const uint32_t d,
+         const uint32_t a,
+         const uint32_t k,
+         const size_t w,
+         const sphincs_hashing::variant v>
+inline static constexpr bool
+check_sign_verify_params()
+{
+  constexpr bool flg0 = w == 16;
+  constexpr bool flg1 = (v == sphincs_hashing::variant::robust) ||
+                        (v == sphincs_hashing::variant::simple);
+
+  const bool flg2 = (n == 16) & (h == 63) & (d == 7) & (a == 12) & (k == 14);
+  const bool flg3 = (n == 16) & (h == 66) & (d == 22) & (a == 6) & (k == 33);
+  const bool flg4 = (n == 24) & (h == 63) & (d == 7) & (a == 14) & (k == 17);
+  const bool flg5 = (n == 24) & (h == 66) & (d == 22) & (a == 8) & (k == 33);
+  const bool flg6 = (n == 32) & (h == 64) & (d == 8) & (a == 14) & (k == 22);
+  const bool flg7 = (n == 32) & (h == 68) & (d == 17) & (a == 9) & (k == 35);
+
+  return (flg2 | flg3 | flg4 | flg5 | flg6 | flg7) & flg0 & flg1;
+}
+
+// Compile-time check to ensure that HyperTree's total height ( say h ) and
+// number of layers ( say d ) are conformant so that we can use 64 -bit unsigned
+// integer for indexing tree.
+//
+// Read more about this constraint in section 4.2.4 of the specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+inline static constexpr bool
+check_ht_height_and_layer(const uint32_t h, const uint32_t d)
+{
+  return (h - (h / d)) <= 64u;
+}
 
 // Compile-time check to ensure that `w` parameter takes only allowed values.
 //
@@ -264,7 +329,7 @@ extract_contiguous_bits_as_u32(
     const uint32_t bit_off = i & 7u;
 
     const uint8_t bit = (msg[byte_off] >> bit_off) & mask;
-    res |= static_cast<uint32_t>(bit) << (bits - (i - frm_idx) - 1u);
+    res |= static_cast<uint32_t>(bit) << (i - frm_idx);
   }
 
   return res;
