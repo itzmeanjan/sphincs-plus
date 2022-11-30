@@ -82,7 +82,8 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
      const uint8_t* const __restrict skey, // SPHINCS+ secret key of 4*n -bytes
      const uint8_t* const __restrict rand_bytes, // Optional n -bytes randomness
      uint8_t* const __restrict sig               // SPHINCS+ signature
-)
+     )
+  requires(sphincs_utils::check_sign_params<n, h, d, a, k, w, v>())
 {
   constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
   constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
