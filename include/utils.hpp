@@ -66,6 +66,18 @@ check_sign_verify_params()
   return (flg2 | flg3 | flg4 | flg5 | flg6 | flg7) & flg0 & flg1;
 }
 
+// Compile-time check to ensure that HyperTree's total height ( say h ) and
+// number of layers ( say d ) are conformant so that we can use 64 -bit unsigned
+// integer for indexing tree.
+//
+// Read more about this constraint in section 4.2.4 of the specification
+// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
+inline static constexpr bool
+check_ht_height_and_layer(const uint32_t h, const uint32_t d)
+{
+  return (h - (h / d)) <= 64u;
+}
+
 // Compile-time check to ensure that `w` parameter takes only allowed values.
 //
 // See Winternitz Parameter point in section 3.1 of

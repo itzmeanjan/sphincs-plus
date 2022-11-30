@@ -18,7 +18,8 @@ inline static void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       uint8_t* const __restrict pkey           // n -bytes HT public key
-)
+      )
+  requires(sphincs_utils::check_ht_height_and_layer(h, d))
 {
   sphincs_adrs::adrs_t adrs{};
 
@@ -51,7 +52,8 @@ sign(const uint8_t* const __restrict msg, // n -bytes message ( to be signed )
      const uint64_t idx_tree,                 // 8 -bytes address to XMSS tree
      const uint32_t idx_leaf,      // 4 -bytes leaf index in that XMSS tree
      uint8_t* const __restrict sig // (h + d * len) * n -bytes HT signature
-)
+     )
+  requires(sphincs_utils::check_ht_height_and_layer(h, d))
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
   constexpr uint32_t h_ = h / d;
@@ -111,6 +113,7 @@ verify(const uint8_t* const __restrict msg,
        const uint64_t idx_tree,
        const uint32_t idx_leaf,
        const uint8_t* const __restrict pkey)
+  requires(sphincs_utils::check_ht_height_and_layer(h, d))
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
   constexpr uint32_t h_ = h / d;
