@@ -261,7 +261,7 @@ extern "C"
   // Verification API
 
   // Verify signature using SPHINCS+-SHAKE-128s-robust public key
-  void sphincs_shake_128s_robust_verify(
+  bool sphincs_shake_128s_robust_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -269,7 +269,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-128s-simple public key
-  void sphincs_shake_128s_simple_verify(
+  bool sphincs_shake_128s_simple_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -277,7 +277,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-128f-robust public key
-  void sphincs_shake_128f_robust_verify(
+  bool sphincs_shake_128f_robust_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -285,7 +285,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-128f-simple public key
-  void sphincs_shake_128f_simple_verify(
+  bool sphincs_shake_128f_simple_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -293,7 +293,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-192s-robust public key
-  void sphincs_shake_192s_robust_verify(
+  bool sphincs_shake_192s_robust_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -301,7 +301,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-192s-simple public key
-  void sphincs_shake_192s_simple_verify(
+  bool sphincs_shake_192s_simple_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -309,7 +309,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-192f-robust public key
-  void sphincs_shake_192f_robust_verify(
+  bool sphincs_shake_192f_robust_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -317,7 +317,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-192f-simple public key
-  void sphincs_shake_192f_simple_verify(
+  bool sphincs_shake_192f_simple_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -325,7 +325,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-256s-robust public key
-  void sphincs_shake_256s_robust_verify(
+  bool sphincs_shake_256s_robust_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -333,7 +333,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-256s-simple public key
-  void sphincs_shake_256s_simple_verify(
+  bool sphincs_shake_256s_simple_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -341,7 +341,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-256f-robust public key
-  void sphincs_shake_256f_robust_verify(
+  bool sphincs_shake_256f_robust_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -349,7 +349,7 @@ extern "C"
   );
 
   // Verify signature using SPHINCS+-SHAKE-256f-simple public key
-  void sphincs_shake_256f_simple_verify(
+  bool sphincs_shake_256f_simple_verify(
     const uint8_t* const __restrict, // message which was signed
     const size_t,                    // byte length of message
     const uint8_t* const __restrict, // SPHINCS+ signature
@@ -759,7 +759,7 @@ extern "C"
     sphincs_inner::sign<n, h, d, a, k, w, v, r>(msg, mlen, skey, rbytes, sig);
   }
 
-  void sphincs_shake_128s_robust_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_128s_robust_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -772,10 +772,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::robust;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_128s_simple_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_128s_simple_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -788,10 +788,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::simple;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_128f_robust_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_128f_robust_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -804,10 +804,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::robust;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_128f_simple_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_128f_simple_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -820,10 +820,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::simple;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_192s_robust_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_192s_robust_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -836,10 +836,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::robust;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_192s_simple_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_192s_simple_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -852,10 +852,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::simple;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_192f_robust_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_192f_robust_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -868,10 +868,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::robust;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_192f_simple_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_192f_simple_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -884,10 +884,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::simple;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_256s_robust_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_256s_robust_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -900,10 +900,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::robust;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_256s_simple_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_256s_simple_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -916,10 +916,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::simple;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_256f_robust_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_256f_robust_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -932,10 +932,10 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::robust;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 
-  void sphincs_shake_256f_simple_verify(const uint8_t* const __restrict msg,
+  bool sphincs_shake_256f_simple_verify(const uint8_t* const __restrict msg,
                                         const size_t mlen,
                                         const uint8_t* const __restrict sig,
                                         const uint8_t* const __restrict pkey)
@@ -948,6 +948,6 @@ extern "C"
     constexpr size_t w = 16;
     constexpr auto v = sphincs_hashing::variant::simple;
 
-    sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    return sphincs_inner::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
   }
 }
