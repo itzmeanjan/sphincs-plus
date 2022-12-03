@@ -28,6 +28,16 @@ def sphincs_shake_128s_robust_keygen(
     public key seed, this routine compute 64 -bytes secret key and 32 -bytes
     public key, using SPHINCS+-SHAKE-128s-robust keygen algorithm
     """
+    assert (
+        len(sk_seed) == 16
+    ), "[SPHINCS+-SHAKE-128s-robust] Expected secret key seed to be 16 -bytes"
+    assert (
+        len(sk_prf) == 16
+    ), "[SPHINCS+-SHAKE-128s-robust] Expected secret key PRF to be 16 -bytes"
+    assert (
+        len(pk_seed) == 16
+    ), "[SPHINCS+-SHAKE-128s-robust] Expected public key seed to be 16 -bytes"
+
     skey = create_string_buffer(64)
     pkey = create_string_buffer(32)
 
@@ -47,6 +57,16 @@ def sphincs_shake_128s_simple_keygen(
     public key seed, this routine compute 64 -bytes secret key and 32 -bytes
     public key, using SPHINCS+-SHAKE-128s-simple keygen algorithm
     """
+    assert (
+        len(sk_seed) == 16
+    ), "[SPHINCS+-SHAKE-128s-simple] Expected secret key seed to be 16 -bytes"
+    assert (
+        len(sk_prf) == 16
+    ), "[SPHINCS+-SHAKE-128s-simple] Expected secret key PRF to be 16 -bytes"
+    assert (
+        len(pk_seed) == 16
+    ), "[SPHINCS+-SHAKE-128s-simple] Expected public key seed to be 16 -bytes"
+
     skey = create_string_buffer(64)
     pkey = create_string_buffer(32)
 
@@ -66,6 +86,16 @@ def sphincs_shake_128f_robust_keygen(
     public key seed, this routine compute 64 -bytes secret key and 32 -bytes
     public key, using SPHINCS+-SHAKE-128f-robust keygen algorithm
     """
+    assert (
+        len(sk_seed) == 16
+    ), "[SPHINCS+-SHAKE-128f-robust] Expected secret key seed to be 16 -bytes"
+    assert (
+        len(sk_prf) == 16
+    ), "[SPHINCS+-SHAKE-128f-robust] Expected secret key PRF to be 16 -bytes"
+    assert (
+        len(pk_seed) == 16
+    ), "[SPHINCS+-SHAKE-128f-robust] Expected public key seed to be 16 -bytes"
+
     skey = create_string_buffer(64)
     pkey = create_string_buffer(32)
 
@@ -85,6 +115,16 @@ def sphincs_shake_128f_simple_keygen(
     public key seed, this routine compute 64 -bytes secret key and 32 -bytes
     public key, using SPHINCS+-SHAKE-128f-simple keygen algorithm
     """
+    assert (
+        len(sk_seed) == 16
+    ), "[SPHINCS+-SHAKE-128f-simple] Expected secret key seed to be 16 -bytes"
+    assert (
+        len(sk_prf) == 16
+    ), "[SPHINCS+-SHAKE-128f-simple] Expected secret key PRF to be 16 -bytes"
+    assert (
+        len(pk_seed) == 16
+    ), "[SPHINCS+-SHAKE-128f-simple] Expected public key seed to be 16 -bytes"
+
     skey = create_string_buffer(64)
     pkey = create_string_buffer(32)
 
@@ -104,6 +144,16 @@ def sphincs_shake_192s_robust_keygen(
     public key seed, this routine compute 96 -bytes secret key and 48 -bytes
     public key, using SPHINCS+-SHAKE-192s-robust keygen algorithm
     """
+    assert (
+        len(sk_seed) == 24
+    ), "[SPHINCS+-SHAKE-192s-robust] Expected secret key seed to be 24 -bytes"
+    assert (
+        len(sk_prf) == 24
+    ), "[SPHINCS+-SHAKE-192s-robust] Expected secret key PRF to be 24 -bytes"
+    assert (
+        len(pk_seed) == 24
+    ), "[SPHINCS+-SHAKE-192s-robust] Expected public key seed to be 24 -bytes"
+
     skey = create_string_buffer(96)
     pkey = create_string_buffer(48)
 
@@ -123,6 +173,16 @@ def sphincs_shake_192s_simple_keygen(
     public key seed, this routine compute 96 -bytes secret key and 48 -bytes
     public key, using SPHINCS+-SHAKE-192s-simple keygen algorithm
     """
+    assert (
+        len(sk_seed) == 24
+    ), "[SPHINCS+-SHAKE-192s-simple] Expected secret key seed to be 24 -bytes"
+    assert (
+        len(sk_prf) == 24
+    ), "[SPHINCS+-SHAKE-192s-simple] Expected secret key PRF to be 24 -bytes"
+    assert (
+        len(pk_seed) == 24
+    ), "[SPHINCS+-SHAKE-192s-simple] Expected public key seed to be 24 -bytes"
+
     skey = create_string_buffer(96)
     pkey = create_string_buffer(48)
 
@@ -142,6 +202,16 @@ def sphincs_shake_192f_robust_keygen(
     public key seed, this routine compute 96 -bytes secret key and 48 -bytes
     public key, using SPHINCS+-SHAKE-192f-robust keygen algorithm
     """
+    assert (
+        len(sk_seed) == 24
+    ), "[SPHINCS+-SHAKE-192f-robust] Expected secret key seed to be 24 -bytes"
+    assert (
+        len(sk_prf) == 24
+    ), "[SPHINCS+-SHAKE-192f-robust] Expected secret key PRF to be 24 -bytes"
+    assert (
+        len(pk_seed) == 24
+    ), "[SPHINCS+-SHAKE-192f-robust] Expected public key seed to be 24 -bytes"
+
     skey = create_string_buffer(96)
     pkey = create_string_buffer(48)
 
@@ -161,6 +231,16 @@ def sphincs_shake_192f_simple_keygen(
     public key seed, this routine compute 96 -bytes secret key and 48 -bytes
     public key, using SPHINCS+-SHAKE-192f-simple keygen algorithm
     """
+    assert (
+        len(sk_seed) == 24
+    ), "[SPHINCS+-SHAKE-192f-simple] Expected secret key seed to be 24 -bytes"
+    assert (
+        len(sk_prf) == 24
+    ), "[SPHINCS+-SHAKE-192f-simple] Expected secret key PRF to be 24 -bytes"
+    assert (
+        len(pk_seed) == 24
+    ), "[SPHINCS+-SHAKE-192f-simple] Expected public key seed to be 24 -bytes"
+
     skey = create_string_buffer(96)
     pkey = create_string_buffer(48)
 
@@ -180,6 +260,16 @@ def sphincs_shake_256s_robust_keygen(
     public key seed, this routine compute 128 -bytes secret key and 64 -bytes
     public key, using SPHINCS+-SHAKE-256s-robust keygen algorithm
     """
+    assert (
+        len(sk_seed) == 32
+    ), "[SPHINCS+-SHAKE-256s-robust] Expected secret key seed to be 32 -bytes"
+    assert (
+        len(sk_prf) == 32
+    ), "[SPHINCS+-SHAKE-256s-robust] Expected secret key PRF to be 32 -bytes"
+    assert (
+        len(pk_seed) == 32
+    ), "[SPHINCS+-SHAKE-256s-robust] Expected public key seed to be 32 -bytes"
+
     skey = create_string_buffer(128)
     pkey = create_string_buffer(64)
 
@@ -199,6 +289,16 @@ def sphincs_shake_256s_simple_keygen(
     public key seed, this routine compute 128 -bytes secret key and 64 -bytes
     public key, using SPHINCS+-SHAKE-256s-simple keygen algorithm
     """
+    assert (
+        len(sk_seed) == 32
+    ), "[SPHINCS+-SHAKE-256s-simple] Expected secret key seed to be 32 -bytes"
+    assert (
+        len(sk_prf) == 32
+    ), "[SPHINCS+-SHAKE-256s-simple] Expected secret key PRF to be 32 -bytes"
+    assert (
+        len(pk_seed) == 32
+    ), "[SPHINCS+-SHAKE-256s-simple] Expected public key seed to be 32 -bytes"
+
     skey = create_string_buffer(128)
     pkey = create_string_buffer(64)
 
@@ -218,6 +318,16 @@ def sphincs_shake_256f_robust_keygen(
     public key seed, this routine compute 128 -bytes secret key and 64 -bytes
     public key, using SPHINCS+-SHAKE-256f-robust keygen algorithm
     """
+    assert (
+        len(sk_seed) == 32
+    ), "[SPHINCS+-SHAKE-256f-robust] Expected secret key seed to be 32 -bytes"
+    assert (
+        len(sk_prf) == 32
+    ), "[SPHINCS+-SHAKE-256f-robust] Expected secret key PRF to be 32 -bytes"
+    assert (
+        len(pk_seed) == 32
+    ), "[SPHINCS+-SHAKE-256f-robust] Expected public key seed to be 32 -bytes"
+
     skey = create_string_buffer(128)
     pkey = create_string_buffer(64)
 
@@ -237,6 +347,16 @@ def sphincs_shake_256f_simple_keygen(
     public key seed, this routine compute 128 -bytes secret key and 64 -bytes
     public key, using SPHINCS+-SHAKE-256f-simple keygen algorithm
     """
+    assert (
+        len(sk_seed) == 32
+    ), "[SPHINCS+-SHAKE-256f-simple] Expected secret key seed to be 32 -bytes"
+    assert (
+        len(sk_prf) == 32
+    ), "[SPHINCS+-SHAKE-256f-simple] Expected secret key PRF to be 32 -bytes"
+    assert (
+        len(pk_seed) == 32
+    ), "[SPHINCS+-SHAKE-256f-simple] Expected public key seed to be 32 -bytes"
+
     skey = create_string_buffer(128)
     pkey = create_string_buffer(64)
 

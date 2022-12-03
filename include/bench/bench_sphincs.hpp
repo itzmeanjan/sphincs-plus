@@ -1,5 +1,6 @@
 #pragma once
 #include "sphincs.hpp"
+#include "x86_64_cpu_cycles.hpp"
 #include <benchmark/benchmark.h>
 
 // Benchmark SPHINCS+ Routines
@@ -21,8 +22,21 @@ keygen(benchmark::State& state)
   uint8_t* pkey = static_cast<uint8_t*>(std::malloc(pklen));
   uint8_t* skey = static_cast<uint8_t*>(std::malloc(sklen));
 
+#if defined __x86_64__
+  uint64_t total_cycles = 0ul;
+#endif
+
   for (auto _ : state) {
+#if defined __x86_64__
+    const uint64_t start = cpu_cycles();
+#endif
+
     sphincs::keygen<n, h, d, w, v>(skey, pkey);
+
+#if defined __x86_64__
+    const uint64_t end = cpu_cycles();
+    total_cycles += (end - start);
+#endif
 
     benchmark::DoNotOptimize(skey);
     benchmark::DoNotOptimize(pkey);
@@ -30,6 +44,11 @@ keygen(benchmark::State& state)
   }
 
   state.SetItemsProcessed(state.iterations());
+
+#if defined __x86_64__
+  total_cycles /= static_cast<uint64_t>(state.iterations());
+  state.counters["average_cpu_cycles"] = static_cast<double>(total_cycles);
+#endif
 
   std::free(pkey);
   std::free(skey);
@@ -61,8 +80,21 @@ sign(benchmark::State& state)
   sphincs_utils::random_data<uint8_t>(msg, mlen);
   sphincs::keygen<n, h, d, w, v>(skey, pkey);
 
+#if defined __x86_64__
+  uint64_t total_cycles = 0ul;
+#endif
+
   for (auto _ : state) {
+#if defined __x86_64__
+    const uint64_t start = cpu_cycles();
+#endif
+
     sphincs::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, sig);
+
+#if defined __x86_64__
+    const uint64_t end = cpu_cycles();
+    total_cycles += (end - start);
+#endif
 
     benchmark::DoNotOptimize(msg);
     benchmark::DoNotOptimize(skey);
@@ -71,6 +103,11 @@ sign(benchmark::State& state)
   }
 
   state.SetItemsProcessed(state.iterations());
+
+#if defined __x86_64__
+  total_cycles /= static_cast<uint64_t>(state.iterations());
+  state.counters["average_cpu_cycles"] = static_cast<double>(total_cycles);
+#endif
 
   std::free(pkey);
   std::free(skey);
@@ -105,8 +142,21 @@ verify(benchmark::State& state)
   sphincs::keygen<n, h, d, w, v>(skey, pkey);
   sphincs::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, sig);
 
+#if defined __x86_64__
+  uint64_t total_cycles = 0ul;
+#endif
+
   for (auto _ : state) {
+#if defined __x86_64__
+    const uint64_t start = cpu_cycles();
+#endif
+
     const bool flg = sphincs::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+
+#if defined __x86_64__
+    const uint64_t end = cpu_cycles();
+    total_cycles += (end - start);
+#endif
 
     benchmark::DoNotOptimize(flg);
     benchmark::DoNotOptimize(msg);
@@ -116,6 +166,11 @@ verify(benchmark::State& state)
   }
 
   state.SetItemsProcessed(state.iterations());
+
+#if defined __x86_64__
+  total_cycles /= static_cast<uint64_t>(state.iterations());
+  state.counters["average_cpu_cycles"] = static_cast<double>(total_cycles);
+#endif
 
   std::free(pkey);
   std::free(skey);
