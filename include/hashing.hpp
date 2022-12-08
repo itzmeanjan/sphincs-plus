@@ -1,5 +1,6 @@
 #pragma once
 #include "shake256.hpp"
+#include <cstring>
 
 // Tweakable hash functions, PRFs and keyed hash functions, for SPHINCS+-SHAKE
 // instantiation
@@ -27,11 +28,14 @@ h_msg(const uint8_t* const __restrict r,
       const size_t mlen,
       uint8_t* const __restrict dig)
 {
+  uint8_t tmp[n + n + n];
+  std::memcpy(tmp + 0, r, n);
+  std::memcpy(tmp + n, pk_seed, n);
+  std::memcpy(tmp + n + n, pk_root, n);
+
   shake256::shake256<true> hasher{};
 
-  hasher.absorb(r, n);
-  hasher.absorb(pk_seed, n);
-  hasher.absorb(pk_root, n);
+  hasher.absorb(tmp, sizeof(tmp));
   hasher.absorb(msg, mlen);
 
   hasher.finalize();
@@ -52,13 +56,13 @@ prf(const uint8_t* const __restrict pk_seed,
     const uint8_t* const __restrict adrs,
     uint8_t* const __restrict dig)
 {
-  shake256::shake256<true> hasher{};
+  uint8_t tmp[n + 32 + n];
+  std::memcpy(tmp + 0, pk_seed, n);
+  std::memcpy(tmp + n, adrs, 32);
+  std::memcpy(tmp + n + 32, sk_seed, n);
 
-  hasher.absorb(pk_seed, n);
-  hasher.absorb(adrs, 32);
-  hasher.absorb(sk_seed, n);
-
-  hasher.finalize();
+  shake256::shake256 hasher{};
+  hasher.hash(tmp, sizeof(tmp));
 
   hasher.read(dig, n);
 }
@@ -77,10 +81,13 @@ prf_msg(const uint8_t* const __restrict sk_prf,
         const size_t mlen,
         uint8_t* const __restrict dig)
 {
+  uint8_t tmp[n + n];
+  std::memcpy(tmp + 0, sk_prf, n);
+  std::memcpy(tmp + n, opt_rand, n);
+
   shake256::shake256<true> hasher{};
 
-  hasher.absorb(sk_prf, n);
-  hasher.absorb(opt_rand, n);
+  hasher.absorb(tmp, sizeof(tmp));
   hasher.absorb(msg, mlen);
 
   hasher.finalize();
@@ -103,12 +110,12 @@ gen_mask(const uint8_t* const __restrict pk_seed,
 {
   constexpr size_t mlen = n * l;
 
-  shake256::shake256<true> hasher{};
+  uint8_t tmp[n + 32];
+  std::memcpy(tmp + 0, pk_seed, n);
+  std::memcpy(tmp + n, adrs, 32);
 
-  hasher.absorb(pk_seed, n);
-  hasher.absorb(adrs, 32);
-
-  hasher.finalize();
+  shake256::shake256 hasher{};
+  hasher.hash(tmp, sizeof(tmp));
 
   hasher.read(dig, mlen);
 
@@ -135,10 +142,13 @@ t_l(const uint8_t* const __restrict pk_seed,
 {
   constexpr size_t mlen = n * l;
 
+  uint8_t tmp[n + 32];
+  std::memcpy(tmp + 0, pk_seed, n);
+  std::memcpy(tmp + n, adrs, 32);
+
   shake256::shake256<true> hasher{};
 
-  hasher.absorb(pk_seed, n);
-  hasher.absorb(adrs, 32);
+  hasher.absorb(tmp, sizeof(tmp));
 
   if constexpr (v == variant::robust) {
     uint8_t masked[mlen]{};
