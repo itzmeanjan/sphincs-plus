@@ -26,9 +26,9 @@ keygen(uint8_t* const __restrict skey, // 4*n -bytes SPHINCS+ secret key
        uint8_t* const __restrict pkey  // 2*n -bytes SPHINCS+ public key
 )
 {
-  uint8_t sk_seed[n]{};
-  uint8_t sk_prf[n]{};
-  uint8_t pk_seed[n]{};
+  uint8_t sk_seed[n];
+  uint8_t sk_prf[n];
+  uint8_t pk_seed[n];
 
   sphincs_utils::random_data<uint8_t>(sk_seed, n);
   sphincs_utils::random_data<uint8_t>(sk_prf, n);
@@ -69,7 +69,7 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
 )
 {
   constexpr bool r = randomize;
-  uint8_t rand_bytes[n]{};
+  uint8_t rand_bytes[n];
 
   if constexpr (r) {
     sphincs_utils::random_data<uint8_t>(rand_bytes, n);
