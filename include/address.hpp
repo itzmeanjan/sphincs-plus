@@ -31,19 +31,19 @@ struct adrs_t
   adrs_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
 
   // Returns 1 -word wide layer address
-  uint32_t get_layer_address()
+  inline uint32_t get_layer_address() const
   {
     return sphincs_utils::from_be_bytes(data + 0);
   }
 
   // Only sets 1 -word wide layer address
-  void set_layer_address(const uint32_t address)
+  inline void set_layer_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 0);
   }
 
   // Returns 3 -word wide tree address
-  std::array<uint32_t, 3> get_tree_address()
+  inline std::array<uint32_t, 3> get_tree_address() const
   {
     return { sphincs_utils::from_be_bytes(data + 4),
              sphincs_utils::from_be_bytes(data + 8),
@@ -51,7 +51,7 @@ struct adrs_t
   }
 
   // Only sets 3 -word wide tree address
-  void set_tree_address(const std::array<uint32_t, 3> address)
+  inline void set_tree_address(const std::array<uint32_t, 3> address)
   {
     sphincs_utils::to_be_bytes(address[0], data + 4);
     sphincs_utils::to_be_bytes(address[1], data + 8);
@@ -60,7 +60,7 @@ struct adrs_t
 
   // Only sets 3 -word wide tree address with a 64 -bit address i.e. higher
   // 32 -bits are zeroed
-  void set_tree_address(const uint64_t address)
+  inline void set_tree_address(const uint64_t address)
   {
     const uint32_t high = static_cast<uint32_t>(address >> 32);
     const uint32_t low = static_cast<uint32_t>(address >> 0);
@@ -69,13 +69,13 @@ struct adrs_t
   }
 
   // Returns 1 -word wide address type
-  type_t get_type()
+  inline type_t get_type() const
   {
     return static_cast<type_t>(sphincs_utils::from_be_bytes(data + 16));
   }
 
   // Sets 1 -word wide address type, along with that zeros subsequent 3 -words.
-  void set_type(const type_t type)
+  inline void set_type(const type_t type)
   {
     sphincs_utils::to_be_bytes(static_cast<uint32_t>(type), data + 16);
     std::memset(data + 20, 0, sizeof(uint32_t) * 3);
@@ -89,37 +89,37 @@ struct wots_hash_t : adrs_t
   wots_hash_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
 
   // Returns 1 -word wide keypair address
-  uint32_t get_keypair_address()
+  inline uint32_t get_keypair_address() const
   {
     return sphincs_utils::from_be_bytes(data + 20);
   }
 
   // Set 1 -word wide key pair address
-  void set_keypair_address(const uint32_t address)
+  inline void set_keypair_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 20);
   }
 
   // Returns 1 -word wide chain address
-  uint32_t get_chain_address()
+  inline uint32_t get_chain_address() const
   {
     return sphincs_utils::from_be_bytes(data + 24);
   }
 
   // Set 1 -word wide chain address
-  void set_chain_address(const uint32_t address)
+  inline void set_chain_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 24);
   }
 
   // Returns 1 -word wide hash address
-  uint32_t get_hash_address()
+  inline uint32_t get_hash_address() const
   {
     return sphincs_utils::from_be_bytes(data + 28);
   }
 
   // Set 1 -word wide hash address
-  void set_hash_address(const uint32_t address)
+  inline void set_hash_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 28);
   }
@@ -132,19 +132,19 @@ struct wots_pk_t : adrs_t
   wots_pk_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
 
   // Returns 1 -word wide keypair address
-  uint32_t get_keypair_address()
+  inline uint32_t get_keypair_address() const
   {
     return sphincs_utils::from_be_bytes(data + 20);
   }
 
   // Set 1 -word wide key pair address
-  void set_keypair_address(const uint32_t address)
+  inline void set_keypair_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 20);
   }
 
   // Zeros last two words of ADRS structure
-  void set_padding() { std::memset(data + 24, 0, sizeof(uint32_t) * 2); }
+  inline void set_padding() { std::memset(data + 24, 0, sizeof(uint32_t) * 2); }
 };
 
 // Structure of Main Hash Tree Address
@@ -154,22 +154,28 @@ struct tree_t : adrs_t
   tree_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
 
   // Zeros 1 -word wide padding
-  void set_padding() { std::memset(data + 20, 0, sizeof(uint32_t)); }
+  inline void set_padding() { std::memset(data + 20, 0, sizeof(uint32_t)); }
 
   // Returns 1 -word wide tree height
-  uint32_t get_tree_height() { return sphincs_utils::from_be_bytes(data + 24); }
+  inline uint32_t get_tree_height() const
+  {
+    return sphincs_utils::from_be_bytes(data + 24);
+  }
 
   // Sets 1 -word wide tree height
-  void set_tree_height(const uint32_t height)
+  inline void set_tree_height(const uint32_t height)
   {
     sphincs_utils::to_be_bytes(height, data + 24);
   }
 
   // Returns 1 -word wide tree index
-  uint32_t get_tree_index() { return sphincs_utils::from_be_bytes(data + 28); }
+  inline uint32_t get_tree_index() const
+  {
+    return sphincs_utils::from_be_bytes(data + 28);
+  }
 
   // Sets 1 -word wide tree index
-  void set_tree_index(const uint32_t idx)
+  inline void set_tree_index(const uint32_t idx)
   {
     sphincs_utils::to_be_bytes(idx, data + 28);
   }
@@ -182,31 +188,37 @@ struct fors_tree_t : adrs_t
   fors_tree_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
 
   // Returns 1 -word wide keypair address
-  uint32_t get_keypair_address()
+  inline uint32_t get_keypair_address() const
   {
     return sphincs_utils::from_be_bytes(data + 20);
   }
 
   // Sets 1 -word wide key pair address
-  void set_keypair_address(const uint32_t address)
+  inline void set_keypair_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 20);
   }
 
   // Returns 1 -word wide tree height
-  uint32_t get_tree_height() { return sphincs_utils::from_be_bytes(data + 24); }
+  inline uint32_t get_tree_height() const
+  {
+    return sphincs_utils::from_be_bytes(data + 24);
+  }
 
   // Sets 1 -word wide tree height
-  void set_tree_height(const uint32_t height)
+  inline void set_tree_height(const uint32_t height)
   {
     sphincs_utils::to_be_bytes(height, data + 24);
   }
 
   // Returns 1 -word wide tree index
-  uint32_t get_tree_index() { return sphincs_utils::from_be_bytes(data + 28); }
+  inline uint32_t get_tree_index() const
+  {
+    return sphincs_utils::from_be_bytes(data + 28);
+  }
 
   // Sets 1 -word wide tree index
-  void set_tree_index(const uint32_t idx)
+  inline void set_tree_index(const uint32_t idx)
   {
     sphincs_utils::to_be_bytes(idx, data + 28);
   }
@@ -219,19 +231,19 @@ struct fors_roots_t : adrs_t
   fors_roots_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
 
   // Returns 1 -word wide keypair address
-  uint32_t get_keypair_address()
+  inline uint32_t get_keypair_address() const
   {
     return sphincs_utils::from_be_bytes(data + 20);
   }
 
   // Sets 1 -word wide key pair address
-  void set_keypair_address(const uint32_t address)
+  inline void set_keypair_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 20);
   }
 
   // Zeros last two words of ADRS structure
-  void set_padding() { std::memset(data + 24, 0, sizeof(uint32_t) * 2); }
+  inline void set_padding() { std::memset(data + 24, 0, sizeof(uint32_t) * 2); }
 };
 
 // Structure of WOTS+ Key Generation Address
@@ -241,34 +253,37 @@ struct wots_prf_t : adrs_t
   wots_prf_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
 
   // Returns 1 -word wide keypair address
-  uint32_t get_keypair_address()
+  inline uint32_t get_keypair_address() const
   {
     return sphincs_utils::from_be_bytes(data + 20);
   }
 
   // Set 1 -word wide key pair address
-  void set_keypair_address(const uint32_t address)
+  inline void set_keypair_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 20);
   }
 
   // Returns 1 -word wide chain address
-  uint32_t get_chain_address()
+  inline uint32_t get_chain_address() const
   {
     return sphincs_utils::from_be_bytes(data + 24);
   }
 
   // Set 1 -word wide chain address
-  void set_chain_address(const uint32_t address)
+  inline void set_chain_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 24);
   }
 
   // Returns 1 -word wide hash address, which is always set to 0
-  uint32_t get_hash_address() { return 0u; }
+  inline uint32_t get_hash_address() const { return 0u; }
 
   // Zeros 1 -word wide hash address
-  void set_hash_address() { std::memset(data + 28, 0, sizeof(uint32_t)); }
+  inline void set_hash_address()
+  {
+    std::memset(data + 28, 0, sizeof(uint32_t));
+  }
 };
 
 // Structure of FORS Key Generation Address
@@ -278,28 +293,31 @@ struct fors_prf_t : adrs_t
   fors_prf_t(const adrs_t& adrs) { std::memcpy(data, adrs.data, 32); }
 
   // Returns 1 -word wide keypair address
-  uint32_t get_keypair_address()
+  inline uint32_t get_keypair_address() const
   {
     return sphincs_utils::from_be_bytes(data + 20);
   }
 
   // Sets 1 -word wide key pair address
-  void set_keypair_address(const uint32_t address)
+  inline void set_keypair_address(const uint32_t address)
   {
     sphincs_utils::to_be_bytes(address, data + 20);
   }
 
   // Returns 1 -word wide tree height
-  uint32_t get_tree_height() { return 0u; }
+  inline uint32_t get_tree_height() const { return 0u; }
 
   // Zeros 1 -word wide tree height
-  void set_tree_height() { std::memset(data + 24, 0, sizeof(uint32_t)); }
+  inline void set_tree_height() { std::memset(data + 24, 0, sizeof(uint32_t)); }
 
   // Returns 1 -word wide tree index
-  uint32_t get_tree_index() { return sphincs_utils::from_be_bytes(data + 28); }
+  inline uint32_t get_tree_index() const
+  {
+    return sphincs_utils::from_be_bytes(data + 28);
+  }
 
   // Sets 1 -word wide tree index
-  void set_tree_index(const uint32_t idx)
+  inline void set_tree_index(const uint32_t idx)
   {
     sphincs_utils::to_be_bytes(idx, data + 28);
   }
