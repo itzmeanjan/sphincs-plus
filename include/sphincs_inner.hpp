@@ -38,7 +38,7 @@ keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
        )
   requires(sphincs_utils::check_keygen_params<n, h, d, w, v>())
 {
-  uint8_t pk_root[n]{};
+  uint8_t pk_root[n];
   sphincs_ht::pkgen<h, d, n, w, v>(sk_seed, pk_seed, pk_root);
 
   // prepare 2*n -bytes public key
@@ -107,8 +107,8 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
   constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) + (1ul << 63) * flg - 1ul;
   constexpr uint32_t mask1 = (1u << (h / d)) - 1ul;
 
-  uint8_t opt[n]{};
-  uint8_t dig[m]{};
+  uint8_t opt[n];
+  uint8_t dig[m];
 
   if constexpr (randomize) {
     std::memcpy(opt, rand_bytes, n);
@@ -143,7 +143,7 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
   adrs.set_type(sphincs_adrs::type_t::FORS_TREE);
   adrs.set_keypair_address(ileaf);
 
-  uint8_t tmp[n]{};
+  uint8_t tmp[n];
 
   sphincs_fors::sign<n, a, k, v>(md, sk_seed, pk_seed, adrs, sig1);
   sphincs_fors::pk_from_sig<n, a, k, v>(sig1, md, pk_seed, adrs, tmp);
@@ -190,7 +190,7 @@ verify(const uint8_t* const __restrict msg, // message which was signed
   constexpr uint64_t mask0 = (1ul << (h_ - 1u * flg)) + (1ul << 63) * flg - 1ul;
   constexpr uint32_t mask1 = (1u << (h / d)) - 1ul;
 
-  uint8_t dig[m]{};
+  uint8_t dig[m];
   sphincs_hashing::h_msg<n, m>(sig0, pk_seed, pk_root, msg, mlen, dig);
 
   const uint8_t* const md = dig;
@@ -217,7 +217,7 @@ verify(const uint8_t* const __restrict msg, // message which was signed
   adrs.set_type(sphincs_adrs::type_t::FORS_TREE);
   adrs.set_keypair_address(ileaf);
 
-  uint8_t tmp[n]{};
+  uint8_t tmp[n];
 
   sphincs_fors::pk_from_sig<n, a, k, v>(sig1, md, pk_seed, adrs, tmp);
 

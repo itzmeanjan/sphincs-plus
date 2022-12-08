@@ -1,4 +1,5 @@
 #pragma once
+#include "address.hpp"
 #include "xmss.hpp"
 
 // FORS: Forest of Random Subsets
@@ -13,7 +14,7 @@ template<const size_t n>
 inline static void
 skgen(const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-      sphincs_adrs::fors_tree_t adrs,          // 32 -bytes FORS address
+      const sphincs_adrs::fors_tree_t adrs,    // 32 -bytes FORS address
       const uint32_t idx,            // 4 -bytes index of FORS private key value
       uint8_t* const __restrict skey // FORS private key value, living at `idx`
 )
@@ -43,9 +44,8 @@ treehash(
   const uint32_t s_idx,                    // 4 -bytes start index
   const uint32_t n_height,                 // 4 -bytes target node height
   const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-  const sphincs_adrs::adrs_t adrs, // 32 -bytes address encoding FORS keypair
-  uint8_t* const __restrict root   // n -bytes root of subtree of height
-                                   // `n_height`
+  sphincs_adrs::fors_tree_t adrs, // 32 -bytes address encoding FORS keypair
+  uint8_t* const __restrict root  // n -bytes root of subtree of `n_height`
 )
 {
   // # -of leafs in the subtree
@@ -54,21 +54,20 @@ treehash(
 
   // Stack holding at max `n_height` many intermediate nodes of FORS tree
   std::stack<sphincs_xmss::node_t<n>> stack;
-  sphincs_adrs::fors_tree_t tree_adrs{ adrs };
   uint8_t sk_val[n]{}; // n -bytes secret key value
 
   for (uint32_t i = 0; i < leaf_cnt; i++) {
-    skgen<n>(pk_seed, sk_seed, tree_adrs, s_idx + i, sk_val);
+    skgen<n>(pk_seed, sk_seed, adrs, s_idx + i, sk_val);
 
-    tree_adrs.set_tree_height(0u);
-    tree_adrs.set_tree_index(s_idx + i);
+    adrs.set_tree_height(0u);
+    adrs.set_tree_index(s_idx + i);
 
     sphincs_xmss::node_t<n> node{};
-    sphincs_hashing::f<n, v>(pk_seed, tree_adrs.data, sk_val, node.data);
+    sphincs_hashing::f<n, v>(pk_seed, adrs.data, sk_val, node.data);
     node.height = 1u;
 
-    tree_adrs.set_tree_height(1u);
-    tree_adrs.set_tree_index(s_idx + i);
+    adrs.set_tree_height(1u);
+    adrs.set_tree_index(s_idx + i);
 
     // Two consecutive nodes, each of n -bytes width
     //
@@ -81,15 +80,15 @@ treehash(
         break;
       }
 
-      tree_adrs.set_tree_index((tree_adrs.get_tree_index() - 1u) >> 1);
+      adrs.set_tree_index((adrs.get_tree_index() - 1u) >> 1);
 
       std::memcpy(c_nodes + 0, top.data, n);
       std::memcpy(c_nodes + n, node.data, n);
 
-      sphincs_hashing::h<n, v>(pk_seed, tree_adrs.data, c_nodes, node.data);
-      node.height = tree_adrs.get_tree_height() + 1u;
+      sphincs_hashing::h<n, v>(pk_seed, adrs.data, c_nodes, node.data);
+      node.height = adrs.get_tree_height() + 1u;
 
-      tree_adrs.set_tree_height(tree_adrs.get_tree_height() + 1u);
+      adrs.set_tree_height(adrs.get_tree_height() + 1u);
       stack.pop();
     }
 
@@ -112,19 +111,19 @@ template<const size_t n,
 inline static void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-      sphincs_adrs::fors_tree_t adrs,          // 32 -bytes FORS address
+      const sphincs_adrs::fors_tree_t adrs,    // 32 -bytes FORS address
       uint8_t* const __restrict pkey           // n -bytes public key
 )
 {
   constexpr uint32_t t = 1u << a; // # -of leaves in FORS subtree
-
-  sphincs_adrs::fors_roots_t roots_adrs{ adrs };
   uint8_t roots[k * n]{};
 
   for (uint32_t i = 0; i < k; i++) {
     const size_t off = static_cast<size_t>(i) * n;
     treehash<n, v>(sk_seed, i * t, a, pk_seed, adrs, roots + off);
   }
+
+  sphincs_adrs::fors_roots_t roots_adrs{ adrs };
 
   roots_adrs.set_type(sphincs_adrs::type_t::FORS_ROOTS);
   roots_adrs.set_keypair_address(adrs.get_keypair_address());
