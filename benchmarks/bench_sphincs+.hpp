@@ -30,14 +30,14 @@ keygen(benchmark::State& state)
 
     sphincs::keygen<n, h, d, w, v>(skey, pkey);
 
+    benchmark::DoNotOptimize(skey);
+    benchmark::DoNotOptimize(pkey);
+    benchmark::ClobberMemory();
+
 #if defined __x86_64__
     const uint64_t end = cpu_cycles();
     total_cycles += (end - start);
 #endif
-
-    benchmark::DoNotOptimize(skey);
-    benchmark::DoNotOptimize(pkey);
-    benchmark::ClobberMemory();
   }
 
   state.SetItemsProcessed(state.iterations());
@@ -88,15 +88,15 @@ sign(benchmark::State& state)
 
     sphincs::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, sig);
 
-#if defined __x86_64__
-    const uint64_t end = cpu_cycles();
-    total_cycles += (end - start);
-#endif
-
     benchmark::DoNotOptimize(msg);
     benchmark::DoNotOptimize(skey);
     benchmark::DoNotOptimize(sig);
     benchmark::ClobberMemory();
+
+#if defined __x86_64__
+    const uint64_t end = cpu_cycles();
+    total_cycles += (end - start);
+#endif
   }
 
   state.SetItemsProcessed(state.iterations());
@@ -151,16 +151,16 @@ verify(benchmark::State& state)
 
     flag &= sphincs::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
 
-#if defined __x86_64__
-    const uint64_t end = cpu_cycles();
-    total_cycles += (end - start);
-#endif
-
     benchmark::DoNotOptimize(flag);
     benchmark::DoNotOptimize(msg);
     benchmark::DoNotOptimize(sig);
     benchmark::DoNotOptimize(pkey);
     benchmark::ClobberMemory();
+
+#if defined __x86_64__
+    const uint64_t end = cpu_cycles();
+    total_cycles += (end - start);
+#endif
   }
 
   assert(flag);
