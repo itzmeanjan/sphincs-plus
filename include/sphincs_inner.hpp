@@ -33,8 +33,8 @@ inline static void
 keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
        const uint8_t* const __restrict sk_prf,  // n -bytes secret key PRF
        const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-       uint8_t* const __restrict skey, // 4*n -bytes SPHINCS+ secret key
-       uint8_t* const __restrict pkey  // 2*n -bytes SPHINCS+ public key
+       uint8_t* const __restrict skey,          // 4*n -bytes SPHINCS+ secret key
+       uint8_t* const __restrict pkey           // 2*n -bytes SPHINCS+ public key
        )
   requires(sphincs_utils::check_keygen_params<n, h, d, w, v>())
 {
@@ -77,9 +77,9 @@ template<const size_t n,
          const sphincs_hashing::variant v,
          const bool randomize = false>
 inline static void
-sign(const uint8_t* const __restrict msg,  // message to be signed
-     const size_t mlen,                    // byte length of message
-     const uint8_t* const __restrict skey, // SPHINCS+ secret key of 4*n -bytes
+sign(const uint8_t* const __restrict msg,        // message to be signed
+     const size_t mlen,                          // byte length of message
+     const uint8_t* const __restrict skey,       // SPHINCS+ secret key of 4*n -bytes
      const uint8_t* const __restrict rand_bytes, // Optional n -bytes randomness
      uint8_t* const __restrict sig               // SPHINCS+ signature
      )

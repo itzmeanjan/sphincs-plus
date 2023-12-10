@@ -24,14 +24,13 @@ struct node_t
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<const size_t n, const size_t w, const sphincs_hashing::variant v>
 inline static void
-treehash(
-  const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-  const uint32_t s_idx,                    // 4 -bytes start index
-  const uint32_t n_height,                 // 4 -bytes target node height
-  const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-  const sphincs_adrs::adrs_t adrs, // 32 -bytes address of containing tree
-  uint8_t* const __restrict root   // n -bytes root of subtree of height
-                                   // `n_height`
+treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
+         const uint32_t s_idx,                    // 4 -bytes start index
+         const uint32_t n_height,                 // 4 -bytes target node height
+         const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+         const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of containing tree
+         uint8_t* const __restrict root           // n -bytes root of subtree of height
+                                                  // `n_height`
 )
 {
   // # -of leafs in the subtree
@@ -98,8 +97,8 @@ template<const uint32_t h,
 inline static void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-      const sphincs_adrs::adrs_t adrs, // 32 -bytes address of containing tree
-      uint8_t* const __restrict pkey   // n -bytes public key
+      const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of containing tree
+      uint8_t* const __restrict pkey           // n -bytes public key
 )
 {
   treehash<n, w, v>(sk_seed, 0u, h, pk_seed, adrs, pkey);
@@ -120,12 +119,12 @@ template<const uint32_t h,
          const size_t w,
          const sphincs_hashing::variant v>
 inline static void
-sign(const uint8_t* const __restrict msg, // n -bytes message ( to be signed )
+sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed )
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
      const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-     const sphincs_adrs::adrs_t adrs, // 32 -bytes address of XMSS instance
-     uint8_t* const __restrict sig    // (len * n + h * n) -bytes signature
+     const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of XMSS instance
+     uint8_t* const __restrict sig            // (len * n + h * n) -bytes signature
 )
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
@@ -161,13 +160,12 @@ template<const uint32_t h,
          const size_t w,
          const sphincs_hashing::variant v>
 inline static void
-pk_from_sig(
-  const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
-  const uint8_t* const __restrict sig,     // (len * n + h * n) -bytes signature
-  const uint8_t* const __restrict msg,     // n -bytes message
-  const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-  const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of XMSS instance
-  uint8_t* const __restrict pkey           // n -bytes public key
+pk_from_sig(const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
+            const uint8_t* const __restrict sig,     // (len * n + h * n) -bytes signature
+            const uint8_t* const __restrict msg,     // n -bytes message
+            const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+            const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of XMSS instance
+            uint8_t* const __restrict pkey           // n -bytes public key
 )
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();

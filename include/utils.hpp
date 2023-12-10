@@ -17,17 +17,12 @@ namespace sphincs_utils {
 // Compile-time check to ensure that SPHINCS+ key generation function is only
 // invoked with parameter sets suggested in table 3 of the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const size_t w,
-         const sphincs_hashing::variant v>
+template<const size_t n, const uint32_t h, const uint32_t d, const size_t w, const sphincs_hashing::variant v>
 inline static constexpr bool
 check_keygen_params()
 {
   constexpr bool flg0 = w == 16;
-  constexpr bool flg1 = (v == sphincs_hashing::variant::robust) |
-                        (v == sphincs_hashing::variant::simple);
+  constexpr bool flg1 = (v == sphincs_hashing::variant::robust) | (v == sphincs_hashing::variant::simple);
 
   constexpr bool flg2 = (n == 16) & (h == 63) & (d == 7);
   constexpr bool flg3 = (n == 16) & (h == 66) & (d == 22);
@@ -42,19 +37,12 @@ check_keygen_params()
 // Compile-time check to ensure that SPHINCS+ sign/ verify function is only
 // invoked with parameter sets suggested in table 3 of the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const uint32_t a,
-         const uint32_t k,
-         const size_t w,
-         const sphincs_hashing::variant v>
+template<const size_t n, const uint32_t h, const uint32_t d, const uint32_t a, const uint32_t k, const size_t w, const sphincs_hashing::variant v>
 inline static constexpr bool
 check_sign_verify_params()
 {
   constexpr bool flg0 = w == 16;
-  constexpr bool flg1 = (v == sphincs_hashing::variant::robust) ||
-                        (v == sphincs_hashing::variant::simple);
+  constexpr bool flg1 = (v == sphincs_hashing::variant::robust) || (v == sphincs_hashing::variant::simple);
 
   const bool flg2 = (n == 16) & (h == 63) & (d == 7) & (a == 12) & (k == 14);
   const bool flg3 = (n == 16) & (h == 66) & (d == 22) & (a == 6) & (k == 33);
@@ -192,12 +180,7 @@ get_sphincs_skey_len()
 
 // Compile-time compute length of SPHINCS+ signature, see figure 15 of the
 // specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const uint32_t a,
-         const uint32_t k,
-         const size_t w>
+template<const size_t n, const uint32_t h, const uint32_t d, const uint32_t a, const uint32_t k, const size_t w>
 inline static constexpr size_t
 get_sphincs_sig_len()
 {
@@ -220,9 +203,7 @@ to_be_bytes(const uint32_t word, uint8_t* const bytes)
 inline static uint32_t
 from_be_bytes(const uint8_t* const bytes)
 {
-  return (static_cast<uint32_t>(bytes[0]) << 24) |
-         (static_cast<uint32_t>(bytes[1]) << 16) |
-         (static_cast<uint32_t>(bytes[2]) << 8) |
+  return (static_cast<uint32_t>(bytes[0]) << 24) | (static_cast<uint32_t>(bytes[1]) << 16) | (static_cast<uint32_t>(bytes[2]) << 8) |
          (static_cast<uint32_t>(bytes[3]) << 0);
 }
 
@@ -310,10 +291,9 @@ base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
 // contiguous bits are now interpreted as an 32 -bit unsigned integer
 // ∈ [0, t) | a <= 32 and t = 2^a
 inline static uint32_t
-extract_contiguous_bits_as_u32(
-  const uint8_t* const __restrict msg, // byte array to extract bits from
-  const uint32_t frm_idx,              // starting bit index
-  const uint32_t to_idx                // ending bit index
+extract_contiguous_bits_as_u32(const uint8_t* const __restrict msg, // byte array to extract bits from
+                               const uint32_t frm_idx,              // starting bit index
+                               const uint32_t to_idx                // ending bit index
 )
 {
   constexpr uint8_t mask = 0b1;

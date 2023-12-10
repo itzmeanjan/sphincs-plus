@@ -15,8 +15,8 @@ inline static void
 skgen(const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const sphincs_adrs::fors_tree_t adrs,    // 32 -bytes FORS address
-      const uint32_t idx,            // 4 -bytes index of FORS private key value
-      uint8_t* const __restrict skey // FORS private key value, living at `idx`
+      const uint32_t idx,                      // 4 -bytes index of FORS private key value
+      uint8_t* const __restrict skey           // FORS private key value, living at `idx`
 )
 {
   sphincs_adrs::fors_prf_t prf_adrs{ adrs };
@@ -39,13 +39,12 @@ skgen(const uint8_t* const __restrict pk_seed, // n -bytes public key seed
 // Merkle Tree.
 template<const size_t n, const sphincs_hashing::variant v>
 inline static void
-treehash(
-  const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-  const uint32_t s_idx,                    // 4 -bytes start index
-  const uint32_t n_height,                 // 4 -bytes target node height
-  const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-  sphincs_adrs::fors_tree_t adrs, // 32 -bytes address encoding FORS keypair
-  uint8_t* const __restrict root  // n -bytes root of subtree of `n_height`
+treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
+         const uint32_t s_idx,                    // 4 -bytes start index
+         const uint32_t n_height,                 // 4 -bytes target node height
+         const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+         sphincs_adrs::fors_tree_t adrs,          // 32 -bytes address encoding FORS keypair
+         uint8_t* const __restrict root           // n -bytes root of subtree of `n_height`
 )
 {
   // # -of leafs in the subtree
@@ -142,11 +141,11 @@ template<const size_t n,
          const uint32_t k,
          const sphincs_hashing::variant v>
 inline static void
-sign(const uint8_t* const __restrict msg, // ⌈(k * a) / 8⌉ -bytes message
+sign(const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes message
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
      const sphincs_adrs::fors_tree_t adrs,    // 32 -bytes FORS address
-     uint8_t* const __restrict sig // k * n * (a + 1) -bytes FORS signature
+     uint8_t* const __restrict sig            // k * n * (a + 1) -bytes FORS signature
 )
 {
   constexpr uint32_t t = 1u << a; // # -of leaves in FORS subtree
@@ -186,12 +185,11 @@ template<const size_t n,
          const uint32_t k,
          const sphincs_hashing::variant v>
 inline static void
-pk_from_sig(
-  const uint8_t* const __restrict sig, // k * n * (a + 1) -bytes FORS signature
-  const uint8_t* const __restrict msg, // ⌈(k * a) / 8⌉ -bytes message
-  const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-  sphincs_adrs::fors_tree_t adrs,          // 32 -bytes FORS address
-  uint8_t* const __restrict pkey           // n -bytes FORS public key
+pk_from_sig(const uint8_t* const __restrict sig,     // k * n * (a + 1) -bytes FORS signature
+            const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes message
+            const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+            sphincs_adrs::fors_tree_t adrs,          // 32 -bytes FORS address
+            uint8_t* const __restrict pkey           // n -bytes FORS public key
 )
 {
   constexpr uint32_t t = 1u << a; // # -of leaves in FORS subtree

@@ -46,12 +46,12 @@ template<const uint32_t h,
          const size_t w,
          const sphincs_hashing::variant v>
 inline static void
-sign(const uint8_t* const __restrict msg, // n -bytes message ( to be signed )
+sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed )
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
      const uint64_t idx_tree,                 // 8 -bytes address to XMSS tree
-     const uint32_t idx_leaf,      // 4 -bytes leaf index in that XMSS tree
-     uint8_t* const __restrict sig // (h + d * len) * n -bytes HT signature
+     const uint32_t idx_leaf,                 // 4 -bytes leaf index in that XMSS tree
+     uint8_t* const __restrict sig            // (h + d * len) * n -bytes HT signature
      )
   requires(sphincs_utils::check_ht_height_and_layer(h, d))
 {
@@ -101,11 +101,7 @@ sign(const uint8_t* const __restrict msg, // n -bytes message ( to be signed )
 //
 // This routine returns truth value in case of successful hypertree signature
 // verification, otherwise it returns false.
-template<const uint32_t h,
-         const uint32_t d,
-         const size_t n,
-         const size_t w,
-         const sphincs_hashing::variant v>
+template<const uint32_t h, const uint32_t d, const size_t n, const size_t w, const sphincs_hashing::variant v>
 inline static bool
 verify(const uint8_t* const __restrict msg,
        const uint8_t* const __restrict sig,
