@@ -1,9 +1,5 @@
-#pragma once
 #include "wots.hpp"
-#include <cassert>
-
-// Test functional correctness of SPHINCS+
-namespace test_sphincs {
+#include <gtest/gtest.h>
 
 // Test correctness of WOTS+ implementation, in standalone mode, using
 //
@@ -16,7 +12,7 @@ namespace test_sphincs {
 // address is used for ensuring correctness - which should work correctly.
 template<const size_t n, const size_t w, const sphincs_hashing::variant v>
 inline static void
-test_wots()
+test_wots_plus()
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
 
@@ -40,9 +36,9 @@ test_wots()
   sphincs_wots::sign<n, w, v>(msg, sk_seed, pk_seed, adrs, sig);
   sphincs_wots::pk_from_sig<n, w, v>(sig, msg, pk_seed, adrs, pkey1);
 
-  bool flg = false;
+  bool flag = false;
   for (size_t i = 0; i < n; i++) {
-    flg |= static_cast<bool>(pkey0[i] ^ pkey1[i]);
+    flag |= static_cast<bool>(pkey0[i] ^ pkey1[i]);
   }
 
   std::free(sk_seed);
@@ -52,7 +48,23 @@ test_wots()
   std::free(msg);
   std::free(sig);
 
-  assert(!flg);
+  EXPECT_FALSE(flag);
 }
 
+TEST(SphincsPlus, WOTS_PlusNISTSecurityLevel1)
+{
+  test_wots_plus<16, 16, sphincs_hashing::variant::robust>();
+  test_wots_plus<16, 16, sphincs_hashing::variant::simple>();
+}
+
+TEST(SphincsPlus, WOTS_PlusNISTSecurityLevel3)
+{
+  test_wots_plus<24, 16, sphincs_hashing::variant::robust>();
+  test_wots_plus<24, 16, sphincs_hashing::variant::simple>();
+}
+
+TEST(SphincsPlus, WOTS_PlusNISTSecurityLevel5)
+{
+  test_wots_plus<32, 16, sphincs_hashing::variant::robust>();
+  test_wots_plus<32, 16, sphincs_hashing::variant::simple>();
 }

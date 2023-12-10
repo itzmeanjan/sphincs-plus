@@ -1,8 +1,5 @@
-#pragma once
 #include "hypertree.hpp"
-
-// Test functional correctness of SPHINCS+
-namespace test_sphincs {
+#include <gtest/gtest.h>
 
 // Test correctness of HyperTree implementation, in standalone mode, using
 //
@@ -11,11 +8,7 @@ namespace test_sphincs {
 // - Verifying signature by using public key and message
 //
 // with random data.
-template<const uint32_t h,
-         const uint32_t d,
-         const size_t n,
-         const size_t w,
-         const sphincs_hashing::variant v>
+template<const uint32_t h, const uint32_t d, const size_t n, const size_t w, const sphincs_hashing::variant v>
 inline static void
 test_hypertree()
 {
@@ -37,11 +30,9 @@ test_hypertree()
   sphincs_utils::random_data<uint8_t>(pk_seed, n);
   sphincs_utils::random_data<uint8_t>(msg, n);
 
-  bool f = false;
-
   sphincs_ht::pkgen<h, d, n, w, v>(sk_seed, pk_seed, pkey);
   sphincs_ht::sign<h, d, n, w, v>(msg, sk_seed, pk_seed, itree, ileaf, sig);
-  f = sphincs_ht::verify<h, d, n, w, v>(msg, sig, pk_seed, itree, ileaf, pkey);
+  const bool flag = sphincs_ht::verify<h, d, n, w, v>(msg, sig, pk_seed, itree, ileaf, pkey);
 
   std::free(sk_seed);
   std::free(pk_seed);
@@ -49,7 +40,29 @@ test_hypertree()
   std::free(pkey);
   std::free(sig);
 
-  assert(f);
+  EXPECT_TRUE(flag);
 }
 
+TEST(SphincsPlus, HyperTreeNISTSecurityLevel1)
+{
+  test_hypertree<63, 7, 16, 16, sphincs_hashing::variant::robust>();
+  test_hypertree<63, 7, 16, 16, sphincs_hashing::variant::simple>();
+  test_hypertree<66, 22, 16, 16, sphincs_hashing::variant::robust>();
+  test_hypertree<66, 22, 16, 16, sphincs_hashing::variant::simple>();
+}
+
+TEST(SphincsPlus, HyperTreeNISTSecurityLevel3)
+{
+  test_hypertree<63, 7, 24, 16, sphincs_hashing::variant::robust>();
+  test_hypertree<63, 7, 24, 16, sphincs_hashing::variant::simple>();
+  test_hypertree<66, 22, 24, 16, sphincs_hashing::variant::robust>();
+  test_hypertree<66, 22, 24, 16, sphincs_hashing::variant::simple>();
+}
+
+TEST(SphincsPlus, HyperTreeNISTSecurityLevel5)
+{
+  test_hypertree<64, 8, 32, 16, sphincs_hashing::variant::robust>();
+  test_hypertree<64, 8, 32, 16, sphincs_hashing::variant::simple>();
+  test_hypertree<68, 17, 32, 16, sphincs_hashing::variant::robust>();
+  test_hypertree<68, 17, 32, 16, sphincs_hashing::variant::simple>();
 }
