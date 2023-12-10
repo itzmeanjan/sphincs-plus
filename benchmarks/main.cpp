@@ -1,4 +1,4 @@
-#include "bench/bench_sphincs.hpp"
+#include "bench_sphincs.hpp"
 
 using namespace sphincs_hashing;
 

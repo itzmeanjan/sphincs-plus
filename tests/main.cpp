@@ -1,4 +1,4 @@
-#include "test/test_sphincs.hpp"
+#include "test_sphincs.hpp"
 #include <iostream>
 
 int

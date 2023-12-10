@@ -2,6 +2,7 @@
 
 #if defined __x86_64__
 
+#include <cstdint>
 #include <x86intrin.h>
 
 // x86_64 architecture specific compiler built-in routine for computing CPU
