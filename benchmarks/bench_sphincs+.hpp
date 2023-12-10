@@ -2,16 +2,13 @@
 #include "sphincs.hpp"
 #include "x86_64_cpu_cycles.hpp"
 #include <benchmark/benchmark.h>
+#include <cassert>
 
 // Benchmark SPHINCS+ Routines
 namespace bench_sphincs {
 
 // Benchmark SPHINCS+ keypair generation
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const size_t w,
-         const sphincs_hashing::variant v>
+template<const size_t n, const uint32_t h, const uint32_t d, const size_t w, const sphincs_hashing::variant v>
 inline static void
 keygen(benchmark::State& state)
 {
@@ -146,25 +143,27 @@ verify(benchmark::State& state)
   uint64_t total_cycles = 0ul;
 #endif
 
+  bool flag = true;
   for (auto _ : state) {
 #if defined __x86_64__
     const uint64_t start = cpu_cycles();
 #endif
 
-    const bool flg = sphincs::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    flag &= sphincs::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
 
 #if defined __x86_64__
     const uint64_t end = cpu_cycles();
     total_cycles += (end - start);
 #endif
 
-    benchmark::DoNotOptimize(flg);
+    benchmark::DoNotOptimize(flag);
     benchmark::DoNotOptimize(msg);
     benchmark::DoNotOptimize(sig);
     benchmark::DoNotOptimize(pkey);
     benchmark::ClobberMemory();
   }
 
+  assert(flag);
   state.SetItemsProcessed(state.iterations());
 
 #if defined __x86_64__
