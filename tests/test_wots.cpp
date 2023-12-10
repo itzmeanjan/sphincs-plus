@@ -10,7 +10,7 @@
 // Note, WOTS+ is the One-Time Signature scheme that is used in SPHINCS+, though
 // its API is not fit for standalone usage, here random data filled WOTS+ hash
 // address is used for ensuring correctness - which should work correctly.
-template<const size_t n, const size_t w, const sphincs_hashing::variant v>
+template<size_t n, size_t w, sphincs_hashing::variant v>
 inline static void
 test_wots_plus()
 {

@@ -8,7 +8,7 @@
 // - Verifying signature by using public key and message
 //
 // with random data.
-template<const uint32_t h, const uint32_t d, const size_t n, const size_t w, const sphincs_hashing::variant v>
+template<uint32_t h, uint32_t d, size_t n, size_t w, sphincs_hashing::variant v>
 inline static void
 test_hypertree()
 {

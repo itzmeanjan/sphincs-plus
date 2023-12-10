@@ -24,11 +24,11 @@ namespace sphincs_inner {
 // See section 6.2 and figure 14 of specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf for SPHINCS+ key
 // generation algorithm and key format, respectively.
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const size_t w,
-         const sphincs_hashing::variant v>
+template<size_t n,
+         uint32_t h,
+         uint32_t d,
+         size_t w,
+         sphincs_hashing::variant v>
 inline static void
 keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
        const uint8_t* const __restrict sk_prf,  // n -bytes secret key PRF
@@ -68,14 +68,14 @@ keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 //
 // This form of SPHINCS+ signing API will be useful when testing conformance
 // with SPHINCS+ standard, using known answer tests (KATs).
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const uint32_t a,
-         const uint32_t k,
-         const size_t w,
-         const sphincs_hashing::variant v,
-         const bool randomize = false>
+template<size_t n,
+         uint32_t h,
+         uint32_t d,
+         uint32_t a,
+         uint32_t k,
+         size_t w,
+         sphincs_hashing::variant v,
+         bool randomize = false>
 inline static void
 sign(const uint8_t* const __restrict msg,        // message to be signed
      const size_t mlen,                          // byte length of message
@@ -155,13 +155,13 @@ sign(const uint8_t* const __restrict msg,        // message to be signed
 // case of successful signature verification, following algorithm 21, as
 // described in section 6.5 of specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const uint32_t a,
-         const uint32_t k,
-         const size_t w,
-         const sphincs_hashing::variant v>
+template<size_t n,
+         uint32_t h,
+         uint32_t d,
+         uint32_t a,
+         uint32_t k,
+         size_t w,
+         sphincs_hashing::variant v>
 inline static bool
 verify(const uint8_t* const __restrict msg, // message which was signed
        const size_t mlen,                   // byte length of message

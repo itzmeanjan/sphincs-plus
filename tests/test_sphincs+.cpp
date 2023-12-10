@@ -8,14 +8,7 @@
 // - Verifying signature using public key and message
 //
 // with random data.
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const uint32_t a,
-         const uint32_t k,
-         const size_t w,
-         const sphincs_hashing::variant v,
-         const bool randomize = false>
+template<size_t n, uint32_t h, uint32_t d, uint32_t a, uint32_t k, size_t w, sphincs_hashing::variant v, bool randomize = false>
 inline static void
 test_sphincs_plus(const size_t mlen)
 {

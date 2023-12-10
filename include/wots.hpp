@@ -12,7 +12,7 @@ namespace sphincs_wots {
 //
 // See algorithm 2 in section 3.2 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w, const sphincs_hashing::variant v>
+template<size_t n, size_t w, sphincs_hashing::variant v>
 inline static void
 chain(const uint8_t* const __restrict x,       // n -bytes
       const uint32_t s_idx,                    // starting index
@@ -45,7 +45,7 @@ chain(const uint8_t* const __restrict x,       // n -bytes
 // seed, n -bytes public key seed and 32 -bytes WOTS+ hash address, using
 // algorithm 4 defined in section 3.4 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w, const sphincs_hashing::variant v>
+template<size_t n, size_t w, sphincs_hashing::variant v>
 inline static void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
@@ -88,7 +88,7 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 // secret key seed, n -bytes public key seed and 32 -bytes WOTS+ hash address,
 // using algorithm 5 defined in section 3.5 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w, const sphincs_hashing::variant v>
+template<size_t n, size_t w, sphincs_hashing::variant v>
 inline static void
 sign(const uint8_t* const __restrict msg,     // n -bytes message to sign
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
@@ -150,7 +150,7 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message to sign
 // hash address is also provided, using algorithm 6, defined in section 3.6 of
 // SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w, const sphincs_hashing::variant v>
+template<size_t n, size_t w, sphincs_hashing::variant v>
 inline static void
 pk_from_sig(const uint8_t* const __restrict sig,     // n * len -bytes signature
             const uint8_t* const __restrict msg,     // n -bytes message ( which was signed )

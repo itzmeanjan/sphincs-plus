@@ -10,7 +10,7 @@ namespace sphincs_fors {
 // tree address, encoding the position of the FORS keypair within SPHINCS+,
 // following algorithm 14, as described in section 5.2 of specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n>
+template<size_t n>
 inline static void
 skgen(const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
@@ -37,7 +37,7 @@ skgen(const uint8_t* const __restrict pk_seed, // n -bytes public key seed
 // in section 4.1.3 of the specification, which describes treehash algorithm,
 // for computing n -bytes root node of subtree of height z, in main (binary)
 // Merkle Tree.
-template<const size_t n, const sphincs_hashing::variant v>
+template<size_t n, sphincs_hashing::variant v>
 inline static void
 treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
          const uint32_t s_idx,                    // 4 -bytes start index
@@ -103,10 +103,10 @@ treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 // public key seed and 32 -bytes FORS address, encoding the position of FORS
 // instance within SPHINCS+, using algorithm 16, as described in section 5.4 of
 // the specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n,
-         const uint32_t a,
-         const uint32_t k,
-         const sphincs_hashing::variant v>
+template<size_t n,
+         uint32_t a,
+         uint32_t k,
+         sphincs_hashing::variant v>
 inline static void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
@@ -136,10 +136,10 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 // position of FORS instance within SPHINCS+ structure, using algorithm 17, as
 // described in section 5.5 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n,
-         const uint32_t a,
-         const uint32_t k,
-         const sphincs_hashing::variant v>
+template<size_t n,
+         uint32_t a,
+         uint32_t k,
+         sphincs_hashing::variant v>
 inline static void
 sign(const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes message
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
@@ -180,10 +180,10 @@ sign(const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes messag
 // address of FORS instance within SPHINCS+ virtual structure, following
 // algorithm 18, as described in section
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n,
-         const uint32_t a,
-         const uint32_t k,
-         const sphincs_hashing::variant v>
+template<size_t n,
+         uint32_t a,
+         uint32_t k,
+         sphincs_hashing::variant v>
 inline static void
 pk_from_sig(const uint8_t* const __restrict sig,     // k * n * (a + 1) -bytes FORS signature
             const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes message

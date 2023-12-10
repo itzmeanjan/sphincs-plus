@@ -9,7 +9,7 @@
 // - Verifying signature by recovering public key from message and signature
 //
 // with random data.
-template<const uint32_t h, const size_t n, const size_t w, const sphincs_hashing::variant v>
+template<uint32_t h, size_t n, size_t w, sphincs_hashing::variant v>
 inline static void
 test_xmss()
 {

@@ -17,7 +17,7 @@ namespace sphincs_utils {
 // Compile-time check to ensure that SPHINCS+ key generation function is only
 // invoked with parameter sets suggested in table 3 of the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const uint32_t h, const uint32_t d, const size_t w, const sphincs_hashing::variant v>
+template<size_t n, uint32_t h, uint32_t d, size_t w, sphincs_hashing::variant v>
 inline static constexpr bool
 check_keygen_params()
 {
@@ -37,7 +37,7 @@ check_keygen_params()
 // Compile-time check to ensure that SPHINCS+ sign/ verify function is only
 // invoked with parameter sets suggested in table 3 of the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const uint32_t h, const uint32_t d, const uint32_t a, const uint32_t k, const size_t w, const sphincs_hashing::variant v>
+template<size_t n, uint32_t h, uint32_t d, uint32_t a, uint32_t k, size_t w, sphincs_hashing::variant v>
 inline static constexpr bool
 check_sign_verify_params()
 {
@@ -80,7 +80,7 @@ check_w(const size_t w)
 //
 // See section 3.1 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t w>
+template<size_t w>
 inline static constexpr size_t
 log2()
   requires(check_w(w))
@@ -92,7 +92,7 @@ log2()
 //
 // See section 3.1 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w>
+template<size_t n, size_t w>
 inline static constexpr size_t
 compute_wots_len1()
 {
@@ -103,7 +103,7 @@ compute_wots_len1()
 //
 // See section 3.1 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w, const size_t len1>
+template<size_t n, size_t w, size_t len1>
 inline static constexpr size_t
 compute_wots_len2()
 {
@@ -118,7 +118,7 @@ compute_wots_len2()
 //
 // See section 3.1 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w>
+template<size_t n, size_t w>
 inline static constexpr size_t
 compute_wots_len()
 {
@@ -130,7 +130,7 @@ compute_wots_len()
 // Compile-time compute message digest length ( = m ) in bytes, following
 // section 6.1 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const uint32_t h, const uint32_t d, const uint32_t a, const uint32_t k>
+template<uint32_t h, uint32_t d, uint32_t a, uint32_t k>
 inline static constexpr size_t
 compute_sphincs_md_len()
 {
@@ -143,7 +143,7 @@ compute_sphincs_md_len()
 
 // Compile-time compute length of FORS sigature, following section 5.5 of
 // the specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const uint32_t a, const uint32_t k>
+template<size_t n, uint32_t a, uint32_t k>
 inline static constexpr size_t
 compute_fors_sig_len()
 {
@@ -152,7 +152,7 @@ compute_fors_sig_len()
 
 // Compile-time compute length of HyperTree signature, following section 4.2.3
 // of the specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const uint32_t h, const uint32_t d, const size_t n, const size_t w>
+template<uint32_t h, uint32_t d, size_t n, size_t w>
 inline static constexpr size_t
 compute_ht_sig_len()
 {
@@ -162,7 +162,7 @@ compute_ht_sig_len()
 
 // Compile-time compute length of SPHINCS+ public key; see figure 14 of the
 // specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n>
+template<size_t n>
 inline static constexpr size_t
 get_sphincs_pkey_len()
 {
@@ -171,7 +171,7 @@ get_sphincs_pkey_len()
 
 // Compile-time compute length of SPHINCS+ secret key; see figure 14 of the
 // specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n>
+template<size_t n>
 inline static constexpr size_t
 get_sphincs_skey_len()
 {
@@ -180,7 +180,7 @@ get_sphincs_skey_len()
 
 // Compile-time compute length of SPHINCS+ signature, see figure 15 of the
 // specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const uint32_t h, const uint32_t d, const uint32_t a, const uint32_t k, const size_t w>
+template<size_t n, uint32_t h, uint32_t d, uint32_t a, uint32_t k, size_t w>
 inline static constexpr size_t
 get_sphincs_sig_len()
 {
@@ -212,7 +212,7 @@ from_be_bytes(const uint8_t* const bytes)
 //
 // See section 2.5 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t w, const size_t ilen, const size_t olen>
+template<size_t w, size_t ilen, size_t olen>
 inline static constexpr bool
 check_olen()
 {
@@ -232,7 +232,7 @@ check_olen()
 //
 // See section 2.4 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<typename T, const size_t y>
+template<typename T, size_t y>
 inline static std::array<uint8_t, y>
 to_byte(const T x)
   requires(std::is_unsigned_v<T>)
@@ -257,7 +257,7 @@ to_byte(const T x)
 //
 // See algorithm 1 in section 2.5 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t w, const size_t ilen, const size_t olen>
+template<size_t w, size_t ilen, size_t olen>
 inline static void
 base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
   requires(check_olen<w, ilen, olen>())

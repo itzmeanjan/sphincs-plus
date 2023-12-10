@@ -8,7 +8,7 @@
 // - Recovering public key from signature and message
 //
 // with random data.
-template<const size_t n, const uint32_t a, const uint32_t k, const sphincs_hashing::variant v>
+template<size_t n, uint32_t a, uint32_t k, sphincs_hashing::variant v>
 inline static void
 test_fors()
 {
