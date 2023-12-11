@@ -14,7 +14,7 @@ template<uint32_t h,
          size_t n,
          size_t w,
          sphincs_hashing::variant v>
-inline static void
+static inline void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       uint8_t* const __restrict pkey           // n -bytes HT public key
@@ -45,7 +45,7 @@ template<uint32_t h,
          size_t n,
          size_t w,
          sphincs_hashing::variant v>
-inline static void
+static inline void
 sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed )
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
@@ -102,7 +102,7 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed
 // This routine returns truth value in case of successful hypertree signature
 // verification, otherwise it returns false.
 template<uint32_t h, uint32_t d, size_t n, size_t w, sphincs_hashing::variant v>
-inline static bool
+static inline bool
 verify(const uint8_t* const __restrict msg,
        const uint8_t* const __restrict sig,
        const uint8_t* const __restrict pk_seed,

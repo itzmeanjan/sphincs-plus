@@ -9,7 +9,7 @@
 //
 // with random data.
 template<size_t n, uint32_t h, uint32_t d, uint32_t a, uint32_t k, size_t w, sphincs_hashing::variant v, bool randomize = false>
-inline static void
+static inline void
 test_sphincs_plus(const size_t mlen)
 {
   namespace utils = sphincs_utils;

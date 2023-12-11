@@ -11,7 +11,7 @@
 // its API is not fit for standalone usage, here random data filled WOTS+ hash
 // address is used for ensuring correctness - which should work correctly.
 template<size_t n, size_t w, sphincs_hashing::variant v>
-inline static void
+static inline void
 test_wots_plus()
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();

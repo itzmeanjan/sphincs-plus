@@ -20,7 +20,7 @@ enum class variant : uint8_t
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t m>
-inline static void
+static inline void
 h_msg(const uint8_t* const __restrict r,
       const uint8_t* const __restrict pk_seed,
       const uint8_t* const __restrict pk_root,
@@ -50,7 +50,7 @@ h_msg(const uint8_t* const __restrict r,
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n>
-inline static void
+static inline void
 prf(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict sk_seed, const uint8_t* const __restrict adrs, uint8_t* const __restrict dig)
 {
   uint8_t tmp[n + 32 + n];
@@ -71,7 +71,7 @@ prf(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict sk_
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n>
-inline static void
+static inline void
 prf_msg(const uint8_t* const __restrict sk_prf,
         const uint8_t* const __restrict opt_rand,
         const uint8_t* const __restrict msg,
@@ -99,7 +99,7 @@ prf_msg(const uint8_t* const __restrict sk_prf,
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t l>
-inline static void
+static inline void
 gen_mask(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
 {
   constexpr size_t mlen = n * l;
@@ -128,7 +128,7 @@ gen_mask(const uint8_t* const __restrict pk_seed, const uint8_t* const __restric
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t l, variant v>
-inline static void
+static inline void
 t_l(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
 {
   constexpr size_t mlen = n * l;
@@ -167,7 +167,7 @@ t_l(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adr
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, variant v>
-inline static void
+static inline void
 f(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
 {
   t_l<n, 1, v>(pk_seed, adrs, msg, dig);
@@ -185,7 +185,7 @@ f(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs,
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, variant v>
-inline static void
+static inline void
 h(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
 {
   t_l<n, 2, v>(pk_seed, adrs, msg, dig);

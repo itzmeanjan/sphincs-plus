@@ -11,7 +11,7 @@ namespace sphincs_fors {
 // following algorithm 14, as described in section 5.2 of specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n>
-inline static void
+static inline void
 skgen(const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const sphincs_adrs::fors_tree_t adrs,    // 32 -bytes FORS address
@@ -38,7 +38,7 @@ skgen(const uint8_t* const __restrict pk_seed, // n -bytes public key seed
 // for computing n -bytes root node of subtree of height z, in main (binary)
 // Merkle Tree.
 template<size_t n, sphincs_hashing::variant v>
-inline static void
+static inline void
 treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
          const uint32_t s_idx,                    // 4 -bytes start index
          const uint32_t n_height,                 // 4 -bytes target node height
@@ -107,7 +107,7 @@ template<size_t n,
          uint32_t a,
          uint32_t k,
          sphincs_hashing::variant v>
-inline static void
+static inline void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       const sphincs_adrs::fors_tree_t adrs,    // 32 -bytes FORS address
@@ -140,7 +140,7 @@ template<size_t n,
          uint32_t a,
          uint32_t k,
          sphincs_hashing::variant v>
-inline static void
+static inline void
 sign(const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes message
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
@@ -184,7 +184,7 @@ template<size_t n,
          uint32_t a,
          uint32_t k,
          sphincs_hashing::variant v>
-inline static void
+static inline void
 pk_from_sig(const uint8_t* const __restrict sig,     // k * n * (a + 1) -bytes FORS signature
             const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes message
             const uint8_t* const __restrict pk_seed, // n -bytes public key seed

@@ -9,7 +9,7 @@ namespace bench_sphincs {
 
 // Benchmark SPHINCS+ keypair generation
 template<const size_t n, const uint32_t h, const uint32_t d, const size_t w, const sphincs_hashing::variant v>
-inline static void
+static inline void
 keygen(benchmark::State& state)
 {
   namespace utils = sphincs_utils;
@@ -60,7 +60,7 @@ template<const size_t n,
          const size_t w,
          const sphincs_hashing::variant v,
          const bool randomize = false>
-inline static void
+static inline void
 sign(benchmark::State& state)
 {
   namespace utils = sphincs_utils;
@@ -121,7 +121,7 @@ template<const size_t n,
          const size_t w,
          const sphincs_hashing::variant v,
          const bool randomize = false>
-inline static void
+static inline void
 verify(benchmark::State& state)
 {
   namespace utils = sphincs_utils;

@@ -16,7 +16,7 @@
 // end = cpu_cycles()
 //
 // CPU cycles spent executing code block = end - start
-inline static uint64_t
+static inline uint64_t
 cpu_cycles()
 {
   _mm_mfence();

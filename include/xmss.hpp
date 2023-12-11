@@ -23,7 +23,7 @@ struct node_t
 // 7, described in section 4.1.3 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t w, sphincs_hashing::variant v>
-inline static void
+static inline void
 treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
          const uint32_t s_idx,                    // 4 -bytes start index
          const uint32_t n_height,                 // 4 -bytes target node height
@@ -94,7 +94,7 @@ template<uint32_t h,
          size_t n,
          size_t w,
          sphincs_hashing::variant v>
-inline static void
+static inline void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of containing tree
@@ -118,7 +118,7 @@ template<uint32_t h,
          size_t n,
          size_t w,
          sphincs_hashing::variant v>
-inline static void
+static inline void
 sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed )
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
      const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
@@ -159,7 +159,7 @@ template<uint32_t h,
          size_t n,
          size_t w,
          sphincs_hashing::variant v>
-inline static void
+static inline void
 pk_from_sig(const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
             const uint8_t* const __restrict sig,     // (len * n + h * n) -bytes signature
             const uint8_t* const __restrict msg,     // n -bytes message

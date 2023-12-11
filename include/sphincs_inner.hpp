@@ -29,7 +29,7 @@ template<size_t n,
          uint32_t d,
          size_t w,
          sphincs_hashing::variant v>
-inline static void
+static inline void
 keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
        const uint8_t* const __restrict sk_prf,  // n -bytes secret key PRF
        const uint8_t* const __restrict pk_seed, // n -bytes public key seed
@@ -76,7 +76,7 @@ template<size_t n,
          size_t w,
          sphincs_hashing::variant v,
          bool randomize = false>
-inline static void
+static inline void
 sign(const uint8_t* const __restrict msg,        // message to be signed
      const size_t mlen,                          // byte length of message
      const uint8_t* const __restrict skey,       // SPHINCS+ secret key of 4*n -bytes
@@ -162,7 +162,7 @@ template<size_t n,
          uint32_t k,
          size_t w,
          sphincs_hashing::variant v>
-inline static bool
+static inline bool
 verify(const uint8_t* const __restrict msg, // message which was signed
        const size_t mlen,                   // byte length of message
        const uint8_t* const __restrict sig, // SPHINCS+ signature

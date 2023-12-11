@@ -10,7 +10,7 @@
 //
 // with random data.
 template<uint32_t h, size_t n, size_t w, sphincs_hashing::variant v>
-inline static void
+static inline void
 test_xmss()
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();

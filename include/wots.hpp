@@ -13,7 +13,7 @@ namespace sphincs_wots {
 // See algorithm 2 in section 3.2 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t w, sphincs_hashing::variant v>
-inline static void
+static inline void
 chain(const uint8_t* const __restrict x,       // n -bytes
       const uint32_t s_idx,                    // starting index
       const uint32_t steps,                    // # -of steps
@@ -46,7 +46,7 @@ chain(const uint8_t* const __restrict x,       // n -bytes
 // algorithm 4 defined in section 3.4 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t w, sphincs_hashing::variant v>
-inline static void
+static inline void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       sphincs_adrs::wots_hash_t adrs,          // 32 -bytes WOTS+ hash address
@@ -89,7 +89,7 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 // using algorithm 5 defined in section 3.5 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t w, sphincs_hashing::variant v>
-inline static void
+static inline void
 sign(const uint8_t* const __restrict msg,     // n -bytes message to sign
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
@@ -151,7 +151,7 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message to sign
 // SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t w, sphincs_hashing::variant v>
-inline static void
+static inline void
 pk_from_sig(const uint8_t* const __restrict sig,     // n * len -bytes signature
             const uint8_t* const __restrict msg,     // n -bytes message ( which was signed )
             const uint8_t* const __restrict pk_seed, // n -bytes public key seed

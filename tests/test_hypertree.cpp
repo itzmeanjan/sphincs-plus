@@ -9,7 +9,7 @@
 //
 // with random data.
 template<uint32_t h, uint32_t d, size_t n, size_t w, sphincs_hashing::variant v>
-inline static void
+static inline void
 test_hypertree()
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();

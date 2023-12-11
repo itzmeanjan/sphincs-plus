@@ -9,7 +9,7 @@
 //
 // with random data.
 template<size_t n, uint32_t a, uint32_t k, sphincs_hashing::variant v>
-inline static void
+static inline void
 test_fors()
 {
   constexpr size_t msg_len = (k * a + 7) / 8; // = ⌈(k * a) / 8⌉ -bytes
