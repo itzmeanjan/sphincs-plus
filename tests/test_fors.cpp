@@ -1,8 +1,5 @@
-#pragma once
 #include "fors.hpp"
-
-// Test functional correctness of SPHINCS+
-namespace test_sphincs {
+#include <gtest/gtest.h>
 
 // Test correctness of FORS implementation, in standalone mode, using
 //
@@ -11,11 +8,8 @@ namespace test_sphincs {
 // - Recovering public key from signature and message
 //
 // with random data.
-template<const size_t n,
-         const uint32_t a,
-         const uint32_t k,
-         const sphincs_hashing::variant v>
-inline static void
+template<size_t n, uint32_t a, uint32_t k, sphincs_hashing::variant v>
+static inline void
 test_fors()
 {
   constexpr size_t msg_len = (k * a + 7) / 8; // = ⌈(k * a) / 8⌉ -bytes
@@ -40,9 +34,9 @@ test_fors()
   sphincs_fors::sign<n, a, k, v>(msg, sk_seed, pk_seed, adrs, sig);
   sphincs_fors::pk_from_sig<n, a, k, v>(sig, msg, pk_seed, adrs, pkey1);
 
-  bool flg = false;
+  bool flag = false;
   for (size_t i = 0; i < n; i++) {
-    flg |= static_cast<bool>(pkey0[i] ^ pkey1[i]);
+    flag |= static_cast<bool>(pkey0[i] ^ pkey1[i]);
   }
 
   std::free(sk_seed);
@@ -52,7 +46,29 @@ test_fors()
   std::free(pkey1);
   std::free(sig);
 
-  assert(!flg);
+  EXPECT_FALSE(flag);
 }
 
+TEST(SphincsPlus, FORSNISTSecurityLevel1)
+{
+  test_fors<16, 12, 14, sphincs_hashing::variant::robust>();
+  test_fors<16, 12, 14, sphincs_hashing::variant::simple>();
+  test_fors<16, 6, 33, sphincs_hashing::variant::robust>();
+  test_fors<16, 6, 33, sphincs_hashing::variant::simple>();
+}
+
+TEST(SphincsPlus, FORSNISTSecurityLevel3)
+{
+  test_fors<24, 14, 17, sphincs_hashing::variant::robust>();
+  test_fors<24, 14, 17, sphincs_hashing::variant::simple>();
+  test_fors<24, 8, 33, sphincs_hashing::variant::robust>();
+  test_fors<24, 8, 33, sphincs_hashing::variant::simple>();
+}
+
+TEST(SphincsPlus, FORSNISTSecurityLevel5)
+{
+  test_fors<32, 14, 22, sphincs_hashing::variant::robust>();
+  test_fors<32, 14, 22, sphincs_hashing::variant::simple>();
+  test_fors<32, 9, 35, sphincs_hashing::variant::robust>();
+  test_fors<32, 9, 35, sphincs_hashing::variant::simple>();
 }

@@ -19,8 +19,8 @@ enum class variant : uint8_t
 //
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t m>
-inline static void
+template<size_t n, size_t m>
+static inline void
 h_msg(const uint8_t* const __restrict r,
       const uint8_t* const __restrict pk_seed,
       const uint8_t* const __restrict pk_root,
@@ -49,12 +49,9 @@ h_msg(const uint8_t* const __restrict r,
 //
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n>
-inline static void
-prf(const uint8_t* const __restrict pk_seed,
-    const uint8_t* const __restrict sk_seed,
-    const uint8_t* const __restrict adrs,
-    uint8_t* const __restrict dig)
+template<size_t n>
+static inline void
+prf(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict sk_seed, const uint8_t* const __restrict adrs, uint8_t* const __restrict dig)
 {
   uint8_t tmp[n + 32 + n];
   std::memcpy(tmp + 0, pk_seed, n);
@@ -73,8 +70,8 @@ prf(const uint8_t* const __restrict pk_seed,
 //
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n>
-inline static void
+template<size_t n>
+static inline void
 prf_msg(const uint8_t* const __restrict sk_prf,
         const uint8_t* const __restrict opt_rand,
         const uint8_t* const __restrict msg,
@@ -101,12 +98,9 @@ prf_msg(const uint8_t* const __restrict sk_prf,
 //
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t l>
-inline static void
-gen_mask(const uint8_t* const __restrict pk_seed,
-         const uint8_t* const __restrict adrs,
-         const uint8_t* const __restrict msg,
-         uint8_t* const __restrict dig)
+template<size_t n, size_t l>
+static inline void
+gen_mask(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
 {
   constexpr size_t mlen = n * l;
 
@@ -133,12 +127,9 @@ gen_mask(const uint8_t* const __restrict pk_seed,
 //
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t l, const variant v>
-inline static void
-t_l(const uint8_t* const __restrict pk_seed,
-    const uint8_t* const __restrict adrs,
-    const uint8_t* const __restrict msg,
-    uint8_t* const __restrict dig)
+template<size_t n, size_t l, variant v>
+static inline void
+t_l(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
 {
   constexpr size_t mlen = n * l;
 
@@ -175,12 +166,9 @@ t_l(const uint8_t* const __restrict pk_seed,
 //
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const variant v>
-inline static void
-f(const uint8_t* const __restrict pk_seed,
-  const uint8_t* const __restrict adrs,
-  const uint8_t* const __restrict msg,
-  uint8_t* const __restrict dig)
+template<size_t n, variant v>
+static inline void
+f(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
 {
   t_l<n, 1, v>(pk_seed, adrs, msg, dig);
 }
@@ -196,12 +184,9 @@ f(const uint8_t* const __restrict pk_seed,
 //
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const variant v>
-inline static void
-h(const uint8_t* const __restrict pk_seed,
-  const uint8_t* const __restrict adrs,
-  const uint8_t* const __restrict msg,
-  uint8_t* const __restrict dig)
+template<size_t n, variant v>
+static inline void
+h(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
 {
   t_l<n, 2, v>(pk_seed, adrs, msg, dig);
 }

@@ -12,8 +12,8 @@ namespace sphincs_wots {
 //
 // See algorithm 2 in section 3.2 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w, const sphincs_hashing::variant v>
-inline static void
+template<size_t n, size_t w, sphincs_hashing::variant v>
+static inline void
 chain(const uint8_t* const __restrict x,       // n -bytes
       const uint32_t s_idx,                    // starting index
       const uint32_t steps,                    // # -of steps
@@ -45,8 +45,8 @@ chain(const uint8_t* const __restrict x,       // n -bytes
 // seed, n -bytes public key seed and 32 -bytes WOTS+ hash address, using
 // algorithm 4 defined in section 3.4 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w, const sphincs_hashing::variant v>
-inline static void
+template<size_t n, size_t w, sphincs_hashing::variant v>
+static inline void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       sphincs_adrs::wots_hash_t adrs,          // 32 -bytes WOTS+ hash address
@@ -75,12 +75,7 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
     adrs.set_chain_address(i);
     adrs.set_hash_address(0);
 
-    chain<n, w, v>(sk_limb,
-                   0u,
-                   static_cast<uint32_t>(w - 1),
-                   adrs,
-                   pk_seed,
-                   chain_limbs + off);
+    chain<n, w, v>(sk_limb, 0u, static_cast<uint32_t>(w - 1), adrs, pk_seed, chain_limbs + off);
   }
 
   pk_adrs.set_type(sphincs_adrs::type_t::WOTS_PK);
@@ -93,8 +88,8 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 // secret key seed, n -bytes public key seed and 32 -bytes WOTS+ hash address,
 // using algorithm 5 defined in section 3.5 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w, const sphincs_hashing::variant v>
-inline static void
+template<size_t n, size_t w, sphincs_hashing::variant v>
+static inline void
 sign(const uint8_t* const __restrict msg,     // n -bytes message to sign
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
@@ -155,14 +150,13 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message to sign
 // hash address is also provided, using algorithm 6, defined in section 3.6 of
 // SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w, const sphincs_hashing::variant v>
-inline static void
-pk_from_sig(
-  const uint8_t* const __restrict sig, // n * len -bytes signature
-  const uint8_t* const __restrict msg, // n -bytes message ( which was signed )
-  const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-  sphincs_adrs::wots_hash_t adrs,          // 32 -bytes WOTS+ hash address
-  uint8_t* const __restrict pkey           // n -bytes public key
+template<size_t n, size_t w, sphincs_hashing::variant v>
+static inline void
+pk_from_sig(const uint8_t* const __restrict sig,     // n * len -bytes signature
+            const uint8_t* const __restrict msg,     // n -bytes message ( which was signed )
+            const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+            sphincs_adrs::wots_hash_t adrs,          // 32 -bytes WOTS+ hash address
+            uint8_t* const __restrict pkey           // n -bytes public key
 )
 {
   constexpr size_t lgw = sphincs_utils::log2<w>();

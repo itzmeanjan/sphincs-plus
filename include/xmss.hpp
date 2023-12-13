@@ -11,7 +11,7 @@ namespace sphincs_xmss {
 // Read section 4.1.3 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf to understand why
 // height of node needs to be kept track of.
-template<const size_t n>
+template<size_t n>
 struct node_t
 {
   uint8_t data[n]{};
@@ -22,16 +22,15 @@ struct node_t
 // leaf node being WOTS+ compressed public key at index `s_idx`, using algorithm
 // 7, described in section 4.1.3 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n, const size_t w, const sphincs_hashing::variant v>
-inline static void
-treehash(
-  const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-  const uint32_t s_idx,                    // 4 -bytes start index
-  const uint32_t n_height,                 // 4 -bytes target node height
-  const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-  const sphincs_adrs::adrs_t adrs, // 32 -bytes address of containing tree
-  uint8_t* const __restrict root   // n -bytes root of subtree of height
-                                   // `n_height`
+template<size_t n, size_t w, sphincs_hashing::variant v>
+static inline void
+treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
+         const uint32_t s_idx,                    // 4 -bytes start index
+         const uint32_t n_height,                 // 4 -bytes target node height
+         const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+         const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of containing tree
+         uint8_t* const __restrict root           // n -bytes root of subtree of height
+                                                  // `n_height`
 )
 {
   // # -of leafs in the subtree
@@ -91,15 +90,15 @@ treehash(
 // Computes XMSS public key, which is the n -bytes root of the binary hash tree,
 // of height h, using algorithm 8, described in section 4.1.4 of SPHINCS+
 // specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const uint32_t h,
-         const size_t n,
-         const size_t w,
-         const sphincs_hashing::variant v>
-inline static void
+template<uint32_t h,
+         size_t n,
+         size_t w,
+         sphincs_hashing::variant v>
+static inline void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-      const sphincs_adrs::adrs_t adrs, // 32 -bytes address of containing tree
-      uint8_t* const __restrict pkey   // n -bytes public key
+      const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of containing tree
+      uint8_t* const __restrict pkey           // n -bytes public key
 )
 {
   treehash<n, w, v>(sk_seed, 0u, h, pk_seed, adrs, pkey);
@@ -115,17 +114,17 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 //
 // Find the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const uint32_t h,
-         const size_t n,
-         const size_t w,
-         const sphincs_hashing::variant v>
-inline static void
-sign(const uint8_t* const __restrict msg, // n -bytes message ( to be signed )
+template<uint32_t h,
+         size_t n,
+         size_t w,
+         sphincs_hashing::variant v>
+static inline void
+sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed )
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
      const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-     const sphincs_adrs::adrs_t adrs, // 32 -bytes address of XMSS instance
-     uint8_t* const __restrict sig    // (len * n + h * n) -bytes signature
+     const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of XMSS instance
+     uint8_t* const __restrict sig            // (len * n + h * n) -bytes signature
 )
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
@@ -156,18 +155,17 @@ sign(const uint8_t* const __restrict msg, // n -bytes message ( to be signed )
 // It uses algorithm 10 for implicit XMSS signature verification, which is
 // described in section 4.1.7 of the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const uint32_t h,
-         const size_t n,
-         const size_t w,
-         const sphincs_hashing::variant v>
-inline static void
-pk_from_sig(
-  const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
-  const uint8_t* const __restrict sig,     // (len * n + h * n) -bytes signature
-  const uint8_t* const __restrict msg,     // n -bytes message
-  const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-  const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of XMSS instance
-  uint8_t* const __restrict pkey           // n -bytes public key
+template<uint32_t h,
+         size_t n,
+         size_t w,
+         sphincs_hashing::variant v>
+static inline void
+pk_from_sig(const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
+            const uint8_t* const __restrict sig,     // (len * n + h * n) -bytes signature
+            const uint8_t* const __restrict msg,     // n -bytes message
+            const uint8_t* const __restrict pk_seed, // n -bytes public key seed
+            const sphincs_adrs::adrs_t adrs,         // 32 -bytes address of XMSS instance
+            uint8_t* const __restrict pkey           // n -bytes public key
 )
 {
   constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();

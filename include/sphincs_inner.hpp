@@ -24,17 +24,17 @@ namespace sphincs_inner {
 // See section 6.2 and figure 14 of specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf for SPHINCS+ key
 // generation algorithm and key format, respectively.
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const size_t w,
-         const sphincs_hashing::variant v>
-inline static void
+template<size_t n,
+         uint32_t h,
+         uint32_t d,
+         size_t w,
+         sphincs_hashing::variant v>
+static inline void
 keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
        const uint8_t* const __restrict sk_prf,  // n -bytes secret key PRF
        const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-       uint8_t* const __restrict skey, // 4*n -bytes SPHINCS+ secret key
-       uint8_t* const __restrict pkey  // 2*n -bytes SPHINCS+ public key
+       uint8_t* const __restrict skey,          // 4*n -bytes SPHINCS+ secret key
+       uint8_t* const __restrict pkey           // 2*n -bytes SPHINCS+ public key
        )
   requires(sphincs_utils::check_keygen_params<n, h, d, w, v>())
 {
@@ -68,18 +68,18 @@ keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 //
 // This form of SPHINCS+ signing API will be useful when testing conformance
 // with SPHINCS+ standard, using known answer tests (KATs).
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const uint32_t a,
-         const uint32_t k,
-         const size_t w,
-         const sphincs_hashing::variant v,
-         const bool randomize = false>
-inline static void
-sign(const uint8_t* const __restrict msg,  // message to be signed
-     const size_t mlen,                    // byte length of message
-     const uint8_t* const __restrict skey, // SPHINCS+ secret key of 4*n -bytes
+template<size_t n,
+         uint32_t h,
+         uint32_t d,
+         uint32_t a,
+         uint32_t k,
+         size_t w,
+         sphincs_hashing::variant v,
+         bool randomize = false>
+static inline void
+sign(const uint8_t* const __restrict msg,        // message to be signed
+     const size_t mlen,                          // byte length of message
+     const uint8_t* const __restrict skey,       // SPHINCS+ secret key of 4*n -bytes
      const uint8_t* const __restrict rand_bytes, // Optional n -bytes randomness
      uint8_t* const __restrict sig               // SPHINCS+ signature
      )
@@ -155,14 +155,14 @@ sign(const uint8_t* const __restrict msg,  // message to be signed
 // case of successful signature verification, following algorithm 21, as
 // described in section 6.5 of specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<const size_t n,
-         const uint32_t h,
-         const uint32_t d,
-         const uint32_t a,
-         const uint32_t k,
-         const size_t w,
-         const sphincs_hashing::variant v>
-inline static bool
+template<size_t n,
+         uint32_t h,
+         uint32_t d,
+         uint32_t a,
+         uint32_t k,
+         size_t w,
+         sphincs_hashing::variant v>
+static inline bool
 verify(const uint8_t* const __restrict msg, // message which was signed
        const size_t mlen,                   // byte length of message
        const uint8_t* const __restrict sig, // SPHINCS+ signature
