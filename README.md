@@ -1,12 +1,14 @@
-> **Warning** **This implementation is not yet audited. If you consider using it in production, be careful !**
+> [!CAUTION] 
+> This implementation is not yet audited. **If you consider using it in production, be careful !**
 
-# sphincs
+# sphincs-plus
 SPHINCS+: Stateless Hash-based Digital Signature Algorithm
 
 ## Introduction
 
 SPHINCS+ is one of those post-quantum digital signature algorithms ( DSA ), which is selected by NIST for standardization. Quoting directly from SPHINCS+ specification
 
+> [!NOTE]
 > SPHINCS+ is probably the most conservative design of a post-quantum signature scheme, on the other hand, it is rather inefficient in terms of signature size and speed.
 
 SPHINCS+ builds on SPHINCS with various improvements. I suggest you read section 1.1 of the specification. 
@@ -15,21 +17,23 @@ SPHINCS+ DSA offers following three APIs
 
 - `keygen`: Computes random keypair where secret key is 4n -bytes and public key is 2n -bytes | n = security parameter ( in bytes )
 
->**Note** 
-
+> [!NOTE]
 > SPHINCS+ secret key holds a copy of public key, which is used when signing messages.
 
 - `sign`: Given M ( > 0 ) -bytes message, SPHINCS+ secret key ( of 4n -bytes ) is used for signing message, by default deterministically. Though one might specifically ask for randomized signing, which will produce random signatures for same message. 
 - `verify`: Given M ( > 0 ) -bytes message and SPHINCS+ signature, it uses SPHINCS+ public key ( of 2n -bytes ) for verifying signature, returning boolean result. Truth value is returned if signature is successfully verified.
 
-Here I'm maintaining SPHINCS+ as zero-dependency, header-only and easy-to-use C++ library, which implements SPHINCS+-SHAKE key generation/ signing/ verification algorithms, for all parameter sets ( encompassing NIST security levels {1, 3, 5} ), as suggested in section 7.2 and table 3 of the specification. 
+Here I'm maintaining SPHINCS+ as a header-only, easy-to-use C++ library, which implements SPHINCS+-SHAKE key generation/ signing/ verification algorithms, for all parameter sets ( encompassing NIST security levels {1, 3, 5} ), as suggested in section 7.2 and table 3 of the specification.
 
-*Find the SPHINCS+ specification [here](https://sphincs.org/data/sphincs+-r3.1-specification.pdf), which was followed during this work.*
+> [!TIP]
+> *Find the SPHINCS+ specification @ https://sphincs.org/data/sphincs+-r3.1-specification.pdf, which was followed during this work.*
 
 `sha3` is the only dependency of this project, which itself is a zero-dependency, header-only C++ library, implementing SHA3 specification of NIST ( i.e. [FIPS PUB 202](http://dx.doi.org/10.6028/NIST.FIPS.202) ). This is done in order to modularize commonly seen symmetric key dependency in post-quantum cryptographic constructions.
 
+> [!TIP]
 > `sha3` is pinned to specific commit, using git submodule. See [usage](#usage) below in order to understand how to use SPHINCS+ in your project.
 
+> [!NOTE]
 > Follow progress of NIST PQC standardization effort [here](https://csrc.nist.gov/projects/post-quantum-cryptography).
 
 ## Prerequisites
@@ -38,86 +42,289 @@ Here I'm maintaining SPHINCS+ as zero-dependency, header-only and easy-to-use C+
 
 ```bash
 $ clang++ --version
-Ubuntu clang version 14.0.0-1ubuntu1
-Target: aarch64-unknown-linux-gnu
+Ubuntu clang version 17.0.2 (1~exp1ubuntu2.1)
+Target: x86_64-pc-linux-gnu
 Thread model: posix
 InstalledDir: /usr/bin
 
 $ g++ --version
-g++ (Ubuntu 11.2.0-19ubuntu1) 11.2.0
+gcc (Ubuntu 13.2.0-4ubuntu3) 13.2.0
 ```
 
-- System development utilities such as `make`, `cmake` & `git`
+- Build systems such as `make` and `cmake`.
 
 ```bash
 $ make --version
 GNU Make 4.3
 
 $ cmake --version
-cmake version 3.22.1
-
-$ git --version
-git version 2.34.1
+cmake version 3.27.4
 ```
 
-- For benchmark you'll need to have `google-benchmark` installed. I found [this](https://github.com/google/benchmark/tree/2257fa4#installation) installation guide helpful.
-- `sha3`: a zero-dependency, header-only C++ library, is the only dependency of this project, which is pinned to specific git commit, using git submodule. Import Sha3 after cloning SPHINCS+ repository.
+- For testing correctness and compatibility of this SPHINCS+ implementation, you need to globally install `google-test` library and headers. Follow guide @ https://github.com/google/googletest/tree/main/googletest#standalone-cmake-project, if you don't have it installed.
+- For benchmarking, you'll need to have `google-benchmark` installed. I found guide @ https://github.com/google/benchmark#installation helpful.
 
-```bash
-git clone https://github.com/itzmeanjan/sphincs.git
-cd sphincs
-git submodule update --init
+> [!NOTE]
+> If you are on a machine running GNU/Linux kernel and you want to obtain CPU cycle count for `keygen`, `sign` and `verify` routines, you should consider building `google-benchmark` library with libPFM support, following https://gist.github.com/itzmeanjan/05dc3e946f635d00c5e0b21aae6203a7, a step-by-step guide. Find more about libPFM @ https://perfmon2.sourceforge.net.
 
-# now you can {test, benchmark, use} SPHINCS+
-```
+> [!TIP]
+> Git submodule based dependencies will generally be imported automatically, but in case that doesn't work, you can manually initialize and update them by issuing `$ git submodule update --init` from inside the root of this repository.
 
 ## Testing
 
-For ensuring that SPHINCS+ implementation is functionally correct and compliant with specification, you may issue
+For ensuring that SPHINCS+ implementation is functionally correct and compliant with the specification @ https://sphincs.org/data/sphincs+-r3.1-specification.pdf, you may issue
 
->**Note**
-
-> This implementation of SPHINCS+ specification is **tested** to be compatible and conformant with latest version of the specification. That's ensured by generating known answer tests ( KATs ) following https://gist.github.com/itzmeanjan/d483872509b8a1a7c4d6614ec9d43e6c and testing this implementation using those test vectors.
+> [!NOTE]
+> This implementation of SPHINCS+ specification is **tested** to be compatible and conformant with r3.1 of the specification. That's ensured by generating known answer tests ( KATs ) following https://gist.github.com/itzmeanjan/d483872509b8a1a7c4d6614ec9d43e6c and testing this implementation using those test vectors.
 
 ```bash
-make
+make -j
+```
 
-[test] WOTS+ one-time signature
-[test] Fixed Input-Length XMSS signature
-[test] HyperTree signature
-[test] FORS signature
-[test] SPHINCS+ signature
-bash test_kat.sh
-clang++ -std=c++20 -Wall -Wextra -pedantic -O3 -march=native -I ./include -I ./sha3/include -fPIC --shared wrapper/sphincs+-shake.cpp -o wrapper/libsphincs+-shake.so
-~/Documents/work/sphincs/wrapper/python ~/Documents/work/sphincs
-=========================================================================================== test session starts ============================================================================================
-platform darwin -- Python 3.10.8, pytest-7.1.3, pluggy-1.0.0 -- /usr/local/opt/python@3.10/bin/python3.10
-cachedir: .pytest_cache
-benchmark: 3.4.1 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
-rootdir: /Users/anjan/Documents/work/sphincs/wrapper/python
-plugins: benchmark-3.4.1
-collected 12 items
+```bash
+Note: Randomizing tests' orders with a seed of 37872 .
+[==========] Running 27 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 27 tests from SphincsPlus
+[ RUN      ] SphincsPlus.WOTS_PlusNISTSecurityLevel1
+[       OK ] SphincsPlus.WOTS_PlusNISTSecurityLevel1 (1 ms)
+[ RUN      ] SphincsPlus.WOTS_PlusNISTSecurityLevel5
+[       OK ] SphincsPlus.WOTS_PlusNISTSecurityLevel5 (2 ms)
+[ RUN      ] SphincsPlus.HyperTreeNISTSecurityLevel5
+[       OK ] SphincsPlus.HyperTreeNISTSecurityLevel5 (3870 ms)
+[ RUN      ] SphincsPlus.SphincsPlus128sRobustKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus128sRobustKnownAnswerTests (224245 ms)
+[ RUN      ] SphincsPlus.XMSSNISTSecurityLevel5
+[       OK ] SphincsPlus.XMSSNISTSecurityLevel5 (808 ms)
+[ RUN      ] SphincsPlus.SphincsPlusNISTSecurityLevel1KeygenSignVerify
+[       OK ] SphincsPlus.SphincsPlusNISTSecurityLevel1KeygenSignVerify (7228 ms)
+[ RUN      ] SphincsPlus.SphincsPlusNISTSecurityLevel3KeygenSignVerify
+[       OK ] SphincsPlus.SphincsPlusNISTSecurityLevel3KeygenSignVerify (12139 ms)
+[ RUN      ] SphincsPlus.XMSSNISTSecurityLevel1
+[       OK ] SphincsPlus.XMSSNISTSecurityLevel1 (811 ms)
+[ RUN      ] SphincsPlus.SphincsPlus256fRobustKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus256fRobustKnownAnswerTests (33483 ms)
+[ RUN      ] SphincsPlus.XMSSNISTSecurityLevel3
+[       OK ] SphincsPlus.XMSSNISTSecurityLevel3 (1192 ms)
+[ RUN      ] SphincsPlus.SphincsPlus128fSimpleKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus128fSimpleKnownAnswerTests (5626 ms)
+[ RUN      ] SphincsPlus.SphincsPlus192fRobustKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus192fRobustKnownAnswerTests (17153 ms)
+[ RUN      ] SphincsPlus.WOTS_PlusNISTSecurityLevel3
+[       OK ] SphincsPlus.WOTS_PlusNISTSecurityLevel3 (2 ms)
+[ RUN      ] SphincsPlus.SphincsPlusNISTSecurityLevel5KeygenSignVerify
+[       OK ] SphincsPlus.SphincsPlusNISTSecurityLevel5KeygenSignVerify (10644 ms)
+[ RUN      ] SphincsPlus.SphincsPlus128fRobustKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus128fRobustKnownAnswerTests (10550 ms)
+[ RUN      ] SphincsPlus.HyperTreeNISTSecurityLevel3
+[       OK ] SphincsPlus.HyperTreeNISTSecurityLevel3 (4928 ms)
+[ RUN      ] SphincsPlus.SphincsPlus192sSimpleKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus192sSimpleKnownAnswerTests (205202 ms)
+[ RUN      ] SphincsPlus.FORSNISTSecurityLevel1
+[       OK ] SphincsPlus.FORSNISTSecurityLevel1 (455 ms)
+[ RUN      ] SphincsPlus.FORSNISTSecurityLevel3
+[       OK ] SphincsPlus.FORSNISTSecurityLevel3 (2194 ms)
+[ RUN      ] SphincsPlus.SphincsPlus192fSimpleKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus192fSimpleKnownAnswerTests (9045 ms)
+[ RUN      ] SphincsPlus.HyperTreeNISTSecurityLevel1
+[       OK ] SphincsPlus.HyperTreeNISTSecurityLevel1 (3377 ms)
+[ RUN      ] SphincsPlus.FORSNISTSecurityLevel5
+[       OK ] SphincsPlus.FORSNISTSecurityLevel5 (2883 ms)
+[ RUN      ] SphincsPlus.SphincsPlus256sRobustKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus256sRobustKnownAnswerTests (319577 ms)
+[ RUN      ] SphincsPlus.SphincsPlus256fSimpleKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus256fSimpleKnownAnswerTests (18823 ms)
+[ RUN      ] SphincsPlus.SphincsPlus192sRobustKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus192sRobustKnownAnswerTests (393502 ms)
+[ RUN      ] SphincsPlus.SphincsPlus128sSimpleKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus128sSimpleKnownAnswerTests (120112 ms)
+[ RUN      ] SphincsPlus.SphincsPlus256sSimpleKnownAnswerTests
+[       OK ] SphincsPlus.SphincsPlus256sSimpleKnownAnswerTests (175160 ms)
+[----------] 27 tests from SphincsPlus (1583025 ms total)
 
-test_sphincs_shake.py::test_sphincs_shake_128s_robust PASSED                                                                                                                                         [  8%]
-test_sphincs_shake.py::test_sphincs_shake_128s_simple PASSED                                                                                                                                         [ 16%]
-test_sphincs_shake.py::test_sphincs_shake_128f_robust PASSED                                                                                                                                         [ 25%]
-test_sphincs_shake.py::test_sphincs_shake_128f_simple PASSED                                                                                                                                         [ 33%]
-test_sphincs_shake.py::test_sphincs_shake_192s_robust PASSED                                                                                                                                         [ 41%]
-test_sphincs_shake.py::test_sphincs_shake_192s_simple PASSED                                                                                                                                         [ 50%]
-test_sphincs_shake.py::test_sphincs_shake_192f_robust PASSED                                                                                                                                         [ 58%]
-test_sphincs_shake.py::test_sphincs_shake_192f_simple PASSED                                                                                                                                         [ 66%]
-test_sphincs_shake.py::test_sphincs_shake_256s_robust PASSED                                                                                                                                         [ 75%]
-test_sphincs_shake.py::test_sphincs_shake_256s_simple PASSED                                                                                                                                         [ 83%]
-test_sphincs_shake.py::test_sphincs_shake_256f_robust PASSED                                                                                                                                         [ 91%]
-test_sphincs_shake.py::test_sphincs_shake_256f_simple PASSED                                                                                                                                         [100%]
-
-===================================================================================== 12 passed in 1275.34s (0:21:15) ======================================================================================
-~/Documents/work/sphincs
+[----------] Global test environment tear-down
+[==========] 27 tests from 1 test suite ran. (1583025 ms total)
+[  PASSED  ] 27 tests.
 ```
 
 ## Benchmarking
 
-Find micro-benchmarking ( using `google-benchmark` ) results [here](./bench/).
+Benchmarking key generation, signing and verification algorithms for various instantiations of SPHINCS+ digital signature scheme can be done, by issuing
+
+```bash
+make benchmark -j  # If you haven't built google-benchmark library with libPFM support.
+make perf -j       # If you have built google-benchmark library with libPFM support.
+```
+
+> [!NOTE]
+> Benchmarking expects presence of `google-benchmark` headers and library in global namespace ( so that it can be found by the compiler ) i.e. header and library path must live on `$PATH`.
+
+> [!CAUTION]
+> Ensure you've put all your CPU cores on performance mode before running benchmarks, follow guide @ https://github.com/google/benchmark/blob/main/docs/reducing_variance.md.
+
+> [!NOTE]
+> `make perf` - was issued when collecting following benchmarks. Notice, cycles column, denoting cost of executing Dilithium signature scheme routines in terms of CPU cycles. Follow https://github.com/google/benchmark/blob/main/docs/perf_counters.md for more details.
+
+### On 12th Gen Intel(R) Core(TM) i7-1260P [ Compiled with GCC-13.2.0 ]
+
+```bash
+2023-12-13T23:09:23+04:00
+Running ./build/perf.out
+Run on (16 X 1201.29 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 1280 KiB (x8)
+  L3 Unified 18432 KiB (x1)
+Load Average: 2.05, 0.77, 0.72
+----------------------------------------------------------------------------------------------------------------------------
+Benchmark                                   Time             CPU   Iterations     CYCLES average_cpu_cycles items_per_second
+----------------------------------------------------------------------------------------------------------------------------
+sphincs+-128s-robust/keygen_mean          201 ms          201 ms           10    913.02M           501.801M        4.97471/s
+sphincs+-128s-robust/keygen_median        201 ms          201 ms           10   912.982M           500.702M        4.98506/s
+sphincs+-128s-robust/keygen_stddev       1.83 ms         1.83 ms           10   376.126k           4.57755M      0.0450845/s
+sphincs+-128s-robust/keygen_cv           0.91 %          0.91 %            10      0.04%              0.91%            0.91%
+sphincs+-128s-robust/sign_mean           1522 ms         1522 ms           10   6.76918G           3.79856G        0.65736/s
+sphincs+-128s-robust/sign_median         1511 ms         1510 ms           10   6.76879G           3.77055G       0.662096/s
+sphincs+-128s-robust/sign_stddev         30.4 ms         30.4 ms           10   2.24195M           75.7684M      0.0127886/s
+sphincs+-128s-robust/sign_cv             1.99 %          2.00 %            10      0.03%              1.99%            1.95%
+sphincs+-192s-simple/verify_mean         1.51 ms         1.51 ms           10    6.7627M           3.76358M        664.567/s
+sphincs+-192s-simple/verify_median       1.48 ms         1.48 ms           10    6.8958M           3.70029M        674.526/s
+sphincs+-192s-simple/verify_stddev      0.057 ms        0.055 ms           10   401.849k           141.616k        24.0437/s
+sphincs+-192s-simple/verify_cv           3.76 %          3.68 %            10      5.94%              3.76%            3.62%
+sphincs+-128s-simple/verify_mean        0.636 ms        0.636 ms           10   2.71568M           1.58765M       1.57322k/s
+sphincs+-128s-simple/verify_median      0.638 ms        0.638 ms           10   2.73004M           1.59338M        1.5665k/s
+sphincs+-128s-simple/verify_stddev      0.018 ms        0.018 ms           10    62.343k           44.4747k        44.2209/s
+sphincs+-128s-simple/verify_cv           2.80 %          2.80 %            10      2.30%              2.80%            2.81%
+sphincs+-256s-robust/verify_mean         2.48 ms         2.48 ms           10   10.4594M            6.1892M        403.416/s
+sphincs+-256s-robust/verify_median       2.49 ms         2.49 ms           10   10.4441M           6.21787M        401.426/s
+sphincs+-256s-robust/verify_stddev      0.048 ms        0.048 ms           10   206.941k           118.554k        7.88149/s
+sphincs+-256s-robust/verify_cv           1.92 %          1.92 %            10      1.98%              1.92%            1.95%
+sphincs+-192s-simple/keygen_mean          201 ms          201 ms           10   922.907M           501.552M        4.97952/s
+sphincs+-192s-simple/keygen_median        199 ms          199 ms           10   923.117M           496.854M        5.02515/s
+sphincs+-192s-simple/keygen_stddev       4.76 ms         4.76 ms           10   4.20723M           11.8833M       0.115355/s
+sphincs+-192s-simple/keygen_cv           2.37 %          2.37 %            10      0.46%              2.37%            2.32%
+sphincs+-256f-robust/sign_mean            233 ms          233 ms           10   1.02045G           581.342M        4.29636/s
+sphincs+-256f-robust/sign_median          230 ms          230 ms           10   1.02039G           575.063M        4.34046/s
+sphincs+-256f-robust/sign_stddev         6.21 ms         6.21 ms           10   1.08544M           15.5037M       0.113206/s
+sphincs+-256f-robust/sign_cv             2.67 %          2.67 %            10      0.11%              2.67%            2.63%
+sphincs+-256s-robust/sign_mean           2094 ms         2094 ms           10   9.22295G           5.22724G       0.477633/s
+sphincs+-256s-robust/sign_median         2082 ms         2082 ms           10   9.22408G           5.19652G       0.480336/s
+sphincs+-256s-robust/sign_stddev         35.3 ms         35.3 ms           10    6.5308M           88.0669M       7.85146m/s
+sphincs+-256s-robust/sign_cv             1.68 %          1.69 %            10      0.07%              1.68%            1.64%
+sphincs+-128s-simple/keygen_mean         83.8 ms         83.8 ms           10    345.96M           209.093M        11.9504/s
+sphincs+-128s-simple/keygen_median       82.5 ms         82.5 ms           10   346.488M           205.815M        12.1277/s
+sphincs+-128s-simple/keygen_stddev       2.91 ms         2.91 ms           10   1.81684M           7.25927M       0.401903/s
+sphincs+-128s-simple/keygen_cv           3.47 %          3.47 %            10      0.53%              3.47%            3.36%
+sphincs+-128f-robust/sign_mean           74.2 ms         74.2 ms           10   330.664M           185.091M        13.4921/s
+sphincs+-128f-robust/sign_median         73.7 ms         73.7 ms           10   330.832M           184.049M        13.5619/s
+sphincs+-128f-robust/sign_stddev         1.71 ms         1.71 ms           10   841.062k           4.27533M       0.304928/s
+sphincs+-128f-robust/sign_cv             2.31 %          2.31 %            10      0.25%              2.31%            2.26%
+sphincs+-256f-robust/verify_mean         4.91 ms         4.91 ms           10    20.515M           12.2672M        203.646/s
+sphincs+-256f-robust/verify_median       4.89 ms         4.89 ms           10   20.5203M           12.1998M        204.598/s
+sphincs+-256f-robust/verify_stddev      0.151 ms        0.151 ms           10   259.967k           377.261k        6.18987/s
+sphincs+-256f-robust/verify_cv           3.07 %          3.08 %            10      1.27%              3.08%            3.04%
+sphincs+-192f-robust/verify_mean         5.03 ms         5.03 ms           10   21.2779M           12.5486M        198.948/s
+sphincs+-192f-robust/verify_median       5.01 ms         5.01 ms           10   21.3069M           12.4947M        199.773/s
+sphincs+-192f-robust/verify_stddev      0.075 ms        0.075 ms           10   162.176k           188.321k        2.95493/s
+sphincs+-192f-robust/verify_cv           1.50 %          1.50 %            10      0.76%              1.50%            1.49%
+sphincs+-256s-simple/verify_mean         1.37 ms         1.37 ms           10   5.82032M           3.41903M        730.339/s
+sphincs+-256s-simple/verify_median       1.36 ms         1.36 ms           10   5.82866M           3.39363M        735.489/s
+sphincs+-256s-simple/verify_stddev      0.030 ms        0.030 ms           10   71.0555k           75.4547k        15.7707/s
+sphincs+-256s-simple/verify_cv           2.21 %          2.21 %            10      1.22%              2.21%            2.16%
+sphincs+-192s-robust/sign_mean           2507 ms         2507 ms           10   11.2156G           6.25818G       0.398988/s
+sphincs+-192s-robust/sign_median         2514 ms         2514 ms           10   11.2208G           6.27437G       0.397829/s
+sphincs+-192s-robust/sign_stddev         48.3 ms         48.3 ms           10   19.7287M            120.58M       7.74241m/s
+sphincs+-192s-robust/sign_cv             1.93 %          1.93 %            10      0.18%              1.93%            1.94%
+sphincs+-192f-robust/keygen_mean         4.69 ms         4.69 ms           10   20.9022M           11.6987M        213.454/s
+sphincs+-192f-robust/keygen_median       4.65 ms         4.65 ms           10   20.9035M           11.6125M        214.942/s
+sphincs+-192f-robust/keygen_stddev      0.104 ms        0.104 ms           10   12.7291k           258.731k        4.62846/s
+sphincs+-192f-robust/keygen_cv           2.21 %          2.21 %            10      0.06%              2.21%            2.17%
+sphincs+-256s-simple/sign_mean            967 ms          967 ms           10   4.11501G           2.41473G        1.03386/s
+sphincs+-256s-simple/sign_median          964 ms          964 ms           10   4.12398G           2.40513G         1.0378/s
+sphincs+-256s-simple/sign_stddev         13.2 ms         13.2 ms           10   28.5561M            33.004M      0.0140213/s
+sphincs+-256s-simple/sign_cv             1.37 %          1.37 %            10      0.69%              1.37%            1.36%
+sphincs+-128f-simple/sign_mean           32.2 ms         32.2 ms           10   135.368M           80.2947M        31.1002/s
+sphincs+-128f-simple/sign_median         32.0 ms         32.0 ms           10   135.317M           79.7514M        31.2968/s
+sphincs+-128f-simple/sign_stddev        0.747 ms        0.747 ms           10   237.835k           1.86529M       0.707854/s
+sphincs+-128f-simple/sign_cv             2.32 %          2.32 %            10      0.18%              2.32%            2.28%
+sphincs+-128f-simple/keygen_mean         1.32 ms         1.32 ms           10   5.51898M           3.28985M        759.087/s
+sphincs+-128f-simple/keygen_median       1.32 ms         1.32 ms           10    5.5206M           3.29328M        757.941/s
+sphincs+-128f-simple/keygen_stddev      0.031 ms        0.031 ms           10   3.46708k           77.0416k        18.2285/s
+sphincs+-128f-simple/keygen_cv           2.34 %          2.34 %            10      0.06%              2.34%            2.40%
+sphincs+-192f-simple/keygen_mean         2.05 ms         2.05 ms           10   8.68651M           5.11701M        487.889/s
+sphincs+-192f-simple/keygen_median       2.04 ms         2.04 ms           10   8.68642M           5.09802M        489.633/s
+sphincs+-192f-simple/keygen_stddev      0.030 ms        0.030 ms           10   7.29449k           75.9995k        7.10665/s
+sphincs+-192f-simple/keygen_cv           1.49 %          1.49 %            10      0.08%              1.49%            1.46%
+sphincs+-128f-simple/verify_mean         1.75 ms         1.75 ms           10   7.45286M           4.37115M        571.721/s
+sphincs+-128f-simple/verify_median       1.77 ms         1.77 ms           10   7.47646M           4.41831M        564.933/s
+sphincs+-128f-simple/verify_stddev      0.063 ms        0.063 ms           10   172.274k           157.011k        21.2056/s
+sphincs+-128f-simple/verify_cv           3.59 %          3.59 %            10      2.31%              3.59%            3.71%
+sphincs+-192f-simple/sign_mean           55.0 ms         54.9 ms           10   235.738M           137.212M        18.2088/s
+sphincs+-192f-simple/sign_median         54.8 ms         54.8 ms           10   235.612M           136.754M        18.2521/s
+sphincs+-192f-simple/sign_stddev         1.29 ms         1.20 ms           10   450.184k           3.21717M       0.382246/s
+sphincs+-192f-simple/sign_cv             2.34 %          2.18 %            10      0.19%              2.34%            2.10%
+sphincs+-128f-robust/verify_mean         4.81 ms         4.81 ms           10   21.2898M           12.0043M        208.048/s
+sphincs+-128f-robust/verify_median       4.87 ms         4.87 ms           10   21.3334M           12.1616M        205.238/s
+sphincs+-128f-robust/verify_stddev      0.117 ms        0.117 ms           10   287.522k           290.867k        5.14776/s
+sphincs+-128f-robust/verify_cv           2.42 %          2.43 %            10      1.35%              2.42%            2.47%
+sphincs+-256f-simple/sign_mean            102 ms          102 ms           10   427.894M            255.49M        9.77595/s
+sphincs+-256f-simple/sign_median          101 ms          101 ms           10   428.045M            252.05M        9.90292/s
+sphincs+-256f-simple/sign_stddev         2.78 ms         2.78 ms           10    660.29k           6.93806M       0.258873/s
+sphincs+-256f-simple/sign_cv             2.72 %          2.72 %            10      0.15%              2.72%            2.65%
+sphincs+-256f-robust/keygen_mean         12.1 ms         12.1 ms           10   53.9607M             30.25M        82.5254/s
+sphincs+-256f-robust/keygen_median       12.1 ms         12.1 ms           10   53.9587M           30.3139M        82.3423/s
+sphincs+-256f-robust/keygen_stddev      0.142 ms        0.142 ms           10   16.3402k           353.976k       0.967165/s
+sphincs+-256f-robust/keygen_cv           1.17 %          1.17 %            10      0.03%              1.17%            1.17%
+sphincs+-128s-simple/sign_mean            632 ms          632 ms           10   2.65653G           1.57693G        1.58305/s
+sphincs+-128s-simple/sign_median          630 ms          630 ms           10   2.65712G           1.57343G        1.58642/s
+sphincs+-128s-simple/sign_stddev         7.26 ms         7.27 ms           10   3.32381M           18.1329M      0.0178092/s
+sphincs+-128s-simple/sign_cv             1.15 %          1.15 %            10      0.13%              1.15%            1.12%
+sphincs+-256s-robust/keygen_mean          195 ms          195 ms           10   864.414M           487.297M        5.13009/s
+sphincs+-256s-robust/keygen_median        194 ms          194 ms           10   863.613M           484.862M         5.1481/s
+sphincs+-256s-robust/keygen_stddev       5.53 ms         5.06 ms           10   2.71374M           13.8123M       0.129272/s
+sphincs+-256s-robust/keygen_cv           2.83 %          2.59 %            10      0.31%              2.83%            2.52%
+sphincs+-128s-robust/verify_mean         1.56 ms         1.56 ms           10   7.02791M           3.89326M        642.276/s
+sphincs+-128s-robust/verify_median       1.55 ms         1.55 ms           10   6.92317M           3.86731M        645.449/s
+sphincs+-128s-robust/verify_stddev      0.071 ms        0.071 ms           10   294.611k           177.099k        28.7489/s
+sphincs+-128s-robust/verify_cv           4.55 %          4.55 %            10      4.19%              4.55%            4.48%
+sphincs+-192f-simple/verify_mean         2.77 ms         2.77 ms           10   11.7693M           6.91173M         361.36/s
+sphincs+-192f-simple/verify_median       2.77 ms         2.77 ms           10   11.7724M           6.90578M        361.446/s
+sphincs+-192f-simple/verify_stddev      0.073 ms        0.073 ms           10   177.475k           181.871k        9.58909/s
+sphincs+-192f-simple/verify_cv           2.63 %          2.63 %            10      1.51%              2.63%            2.65%
+sphincs+-256f-simple/keygen_mean         4.87 ms         4.87 ms           10   20.2736M           12.1663M        205.343/s
+sphincs+-256f-simple/keygen_median       4.82 ms         4.82 ms           10    20.278M           12.0239M        207.595/s
+sphincs+-256f-simple/keygen_stddev      0.150 ms        0.150 ms           10   22.2275k           374.754k        6.24175/s
+sphincs+-256f-simple/keygen_cv           3.08 %          3.08 %            10      0.11%              3.08%            3.04%
+sphincs+-192s-robust/verify_mean         2.33 ms         2.33 ms           10   10.3507M           5.80658M        430.412/s
+sphincs+-192s-robust/verify_median       2.29 ms         2.29 ms           10   10.3478M           5.72023M        436.328/s
+sphincs+-192s-robust/verify_stddev      0.090 ms        0.090 ms           10    232.78k           225.106k         16.143/s
+sphincs+-192s-robust/verify_cv           3.88 %          3.88 %            10      2.25%              3.88%            3.75%
+sphincs+-256s-simple/keygen_mean         77.8 ms         77.8 ms           10   327.463M           194.173M        12.8629/s
+sphincs+-256s-simple/keygen_median       78.2 ms         78.2 ms           10   327.321M           195.248M        12.7839/s
+sphincs+-256s-simple/keygen_stddev       2.05 ms         2.05 ms           10   399.286k           5.12261M       0.346322/s
+sphincs+-256s-simple/keygen_cv           2.64 %          2.64 %            10      0.12%              2.64%            2.69%
+sphincs+-192f-robust/sign_mean            115 ms          115 ms           10   506.492M           287.564M        8.68512/s
+sphincs+-192f-robust/sign_median          115 ms          115 ms           10    506.67M           286.736M        8.70699/s
+sphincs+-192f-robust/sign_stddev         2.84 ms         2.83 ms           10   1.19232M           7.07564M       0.208781/s
+sphincs+-192f-robust/sign_cv             2.46 %          2.46 %            10      0.24%              2.46%            2.40%
+sphincs+-256f-simple/verify_mean         2.75 ms         2.75 ms           10   11.5814M           6.85574M        364.184/s
+sphincs+-256f-simple/verify_median       2.73 ms         2.73 ms           10   11.5823M           6.82514M        365.721/s
+sphincs+-256f-simple/verify_stddev      0.049 ms        0.049 ms           10   154.573k           122.569k        6.49341/s
+sphincs+-256f-simple/verify_cv           1.79 %          1.79 %            10      1.33%              1.79%            1.78%
+sphincs+-192s-robust/keygen_mean          298 ms          298 ms           10   1.33629G           743.857M        3.35583/s
+sphincs+-192s-robust/keygen_median        299 ms          299 ms           10   1.33612G           745.675M         3.3474/s
+sphincs+-192s-robust/keygen_stddev       2.67 ms         2.67 ms           10   669.298k           6.66202M      0.0301769/s
+sphincs+-192s-robust/keygen_cv           0.90 %          0.90 %            10      0.05%              0.90%            0.90%
+sphincs+-128f-robust/keygen_mean         3.24 ms         3.24 ms           10   14.4573M           8.09145M        308.579/s
+sphincs+-128f-robust/keygen_median       3.23 ms         3.23 ms           10   14.4576M           8.06411M        309.529/s
+sphincs+-128f-robust/keygen_stddev      0.056 ms        0.056 ms           10   13.1193k           139.127k        5.14654/s
+sphincs+-128f-robust/keygen_cv           1.72 %          1.72 %            10      0.09%              1.72%            1.67%
+sphincs+-192s-simple/sign_mean           1670 ms         1670 ms           10   7.70172G           4.16766G       0.599017/s
+sphincs+-192s-simple/sign_median         1665 ms         1665 ms           10   7.70573G           4.15646G       0.600521/s
+sphincs+-192s-simple/sign_stddev         19.5 ms         19.5 ms           10   23.2734M           48.6806M       6.94608m/s
+sphincs+-192s-simple/sign_cv             1.17 %          1.17 %            10      0.30%              1.17%            1.16%
+```
 
 ## Usage
 
@@ -134,14 +341,12 @@ popd
 
 - Write program which makes use of SPHINCS+ {keygen, signing, verification} API ( all of these routines live under `sphincs::` namespace ), while importing [include/sphincs.hpp](./include/sphincs.hpp) and correctly parameterizing invoked functions so that you use desired SPHINCS+ instance, among recommended variants.
 
-> **Note**
-
+> [!NOTE]
 > C++ compile-time checks are in-place to ensure that you only use SPHINCS+ parameter sets which are suggested in the specification ( it's linked below ). See [utils.hpp](./include/utils.hpp) to understand how it's done using `constexpr` requirements.
 
 - Finally compile your program, while letting your compiler know where it can find SPHINCS+ and Sha3 headers.
 
-> **Note**
-
+> [!NOTE]
 > For recommended parameter sets, find table 3 of SPHINCS+ [specification](https://sphincs.org/data/sphincs+-r3.1-specification.pdf).
 
 ### SPHINCS+-SHAKE API Usage Flow
@@ -160,8 +365,7 @@ Here's an example program which demonstrates how to
 
 - Compute ( at compile-time ) how much memory to allocate for public key, secret key and signature, based on chosen parameter set
 
-> **Note**
-
+> [!NOTE]
 > Utility routines live under namespace `sphincs_utils::`, in header [utils.hpp](./include/utils.hpp). You won't probably need to import it seperately, it becomes available with inclusion of [sphincs.hpp](./include/sphincs.hpp).
 
 - Generate new keypair, using system randomness
