@@ -3,7 +3,7 @@
 #include "xmss.hpp"
 
 // FORS: Forest of Random Subsets
-namespace sphincs_fors {
+namespace sphincs_plus_fors {
 
 // Computes a n -bytes FORS private key value, living at specified index `idx`,
 // given n -bytes public key seed, n -bytes private key seed and 32 -bytes FORS
@@ -12,20 +12,20 @@ namespace sphincs_fors {
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n>
 static inline void
-skgen(const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-      const sphincs_adrs::fors_tree_t adrs,    // 32 -bytes FORS address
-      const uint32_t idx,                      // 4 -bytes index of FORS private key value
-      uint8_t* const __restrict skey           // FORS private key value, living at `idx`
+skgen(const uint8_t* const __restrict pk_seed,   // n -bytes public key seed
+      const uint8_t* const __restrict sk_seed,   // n -bytes secret key seed
+      const sphincs_plus_adrs::fors_tree_t adrs, // 32 -bytes FORS address
+      const uint32_t idx,                        // 4 -bytes index of FORS private key value
+      uint8_t* const __restrict skey             // FORS private key value, living at `idx`
 )
 {
-  sphincs_adrs::fors_prf_t prf_adrs{ adrs };
+  sphincs_plus_adrs::fors_prf_t prf_adrs{ adrs };
 
-  prf_adrs.set_type(sphincs_adrs::type_t::FORS_PRF);
+  prf_adrs.set_type(sphincs_plus_adrs::type_t::FORS_PRF);
   prf_adrs.set_keypair_address(adrs.get_keypair_address());
   prf_adrs.set_tree_index(idx);
 
-  sphincs_hashing::prf<n>(pk_seed, sk_seed, prf_adrs.data, skey);
+  sphincs_plus_hashing::prf<n>(pk_seed, sk_seed, prf_adrs.data, skey);
 }
 
 // Computes n -bytes root node of a subtree ( in the FORS tree ) of height
@@ -37,13 +37,13 @@ skgen(const uint8_t* const __restrict pk_seed, // n -bytes public key seed
 // in section 4.1.3 of the specification, which describes treehash algorithm,
 // for computing n -bytes root node of subtree of height z, in main (binary)
 // Merkle Tree.
-template<size_t n, sphincs_hashing::variant v>
+template<size_t n, sphincs_plus_hashing::variant v>
 static inline void
 treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
          const uint32_t s_idx,                    // 4 -bytes start index
          const uint32_t n_height,                 // 4 -bytes target node height
          const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-         sphincs_adrs::fors_tree_t adrs,          // 32 -bytes address encoding FORS keypair
+         sphincs_plus_adrs::fors_tree_t adrs,     // 32 -bytes address encoding FORS keypair
          uint8_t* const __restrict root           // n -bytes root of subtree of `n_height`
 )
 {
@@ -52,7 +52,7 @@ treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
   assert((s_idx % leaf_cnt) == 0);
 
   // Stack holding at max `n_height` many intermediate nodes of FORS tree
-  std::stack<sphincs_xmss::node_t<n>> stack;
+  std::stack<sphincs_plus_xmss::node_t<n>> stack;
   uint8_t sk_val[n]{}; // n -bytes secret key value
 
   for (uint32_t i = 0; i < leaf_cnt; i++) {
@@ -61,8 +61,8 @@ treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
     adrs.set_tree_height(0u);
     adrs.set_tree_index(s_idx + i);
 
-    sphincs_xmss::node_t<n> node{};
-    sphincs_hashing::f<n, v>(pk_seed, adrs.data, sk_val, node.data);
+    sphincs_plus_xmss::node_t<n> node{};
+    sphincs_plus_hashing::f<n, v>(pk_seed, adrs.data, sk_val, node.data);
     node.height = 1u;
 
     adrs.set_tree_height(1u);
@@ -84,7 +84,7 @@ treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       std::memcpy(c_nodes + 0, top.data, n);
       std::memcpy(c_nodes + n, node.data, n);
 
-      sphincs_hashing::h<n, v>(pk_seed, adrs.data, c_nodes, node.data);
+      sphincs_plus_hashing::h<n, v>(pk_seed, adrs.data, c_nodes, node.data);
       node.height = adrs.get_tree_height() + 1u;
 
       adrs.set_tree_height(adrs.get_tree_height() + 1u);
@@ -94,7 +94,7 @@ treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
     stack.push(node);
   }
 
-  const sphincs_xmss::node_t<n> top = stack.top();
+  const sphincs_plus_xmss::node_t<n> top = stack.top();
   std::memcpy(root, top.data, n);
   stack.pop(); // stack must be empty now !
 }
@@ -106,12 +106,12 @@ treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 template<size_t n,
          uint32_t a,
          uint32_t k,
-         sphincs_hashing::variant v>
+         sphincs_plus_hashing::variant v>
 static inline void
-pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-      const sphincs_adrs::fors_tree_t adrs,    // 32 -bytes FORS address
-      uint8_t* const __restrict pkey           // n -bytes public key
+pkgen(const uint8_t* const __restrict sk_seed,   // n -bytes secret key seed
+      const uint8_t* const __restrict pk_seed,   // n -bytes public key seed
+      const sphincs_plus_adrs::fors_tree_t adrs, // 32 -bytes FORS address
+      uint8_t* const __restrict pkey             // n -bytes public key
 )
 {
   constexpr uint32_t t = 1u << a; // # -of leaves in FORS subtree
@@ -122,12 +122,12 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
     treehash<n, v>(sk_seed, i * t, a, pk_seed, adrs, roots + off);
   }
 
-  sphincs_adrs::fors_roots_t roots_adrs{ adrs };
+  sphincs_plus_adrs::fors_roots_t roots_adrs{ adrs };
 
-  roots_adrs.set_type(sphincs_adrs::type_t::FORS_ROOTS);
+  roots_adrs.set_type(sphincs_plus_adrs::type_t::FORS_ROOTS);
   roots_adrs.set_keypair_address(adrs.get_keypair_address());
 
-  sphincs_hashing::t_l<n, k, v>(pk_seed, roots_adrs.data, roots, pkey);
+  sphincs_plus_hashing::t_l<n, k, v>(pk_seed, roots_adrs.data, roots, pkey);
 }
 
 // Computes k * n * (a + 1) -bytes FORS signature over message of ⌈(k * a) / 8⌉
@@ -139,13 +139,13 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 template<size_t n,
          uint32_t a,
          uint32_t k,
-         sphincs_hashing::variant v>
+         sphincs_plus_hashing::variant v>
 static inline void
-sign(const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes message
-     const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-     const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-     const sphincs_adrs::fors_tree_t adrs,    // 32 -bytes FORS address
-     uint8_t* const __restrict sig            // k * n * (a + 1) -bytes FORS signature
+sign(const uint8_t* const __restrict msg,       // ⌈(k * a) / 8⌉ -bytes message
+     const uint8_t* const __restrict sk_seed,   // n -bytes secret key seed
+     const uint8_t* const __restrict pk_seed,   // n -bytes public key seed
+     const sphincs_plus_adrs::fors_tree_t adrs, // 32 -bytes FORS address
+     uint8_t* const __restrict sig              // k * n * (a + 1) -bytes FORS signature
 )
 {
   constexpr uint32_t t = 1u << a; // # -of leaves in FORS subtree
@@ -158,7 +158,7 @@ sign(const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes messag
     const size_t frm = i * a;
     const size_t to = (i + 1) * a - 1;
 
-    uint32_t idx = sphincs_utils::extract_contiguous_bits_as_u32(msg, frm, to);
+    uint32_t idx = sphincs_plus_utils::extract_contiguous_bits_as_u32(msg, frm, to);
 
     const size_t off0 = i * sig_elm_len;
     const size_t off1 = off0 + skey_val_len;
@@ -183,12 +183,12 @@ sign(const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes messag
 template<size_t n,
          uint32_t a,
          uint32_t k,
-         sphincs_hashing::variant v>
+         sphincs_plus_hashing::variant v>
 static inline void
 pk_from_sig(const uint8_t* const __restrict sig,     // k * n * (a + 1) -bytes FORS signature
             const uint8_t* const __restrict msg,     // ⌈(k * a) / 8⌉ -bytes message
             const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-            sphincs_adrs::fors_tree_t adrs,          // 32 -bytes FORS address
+            sphincs_plus_adrs::fors_tree_t adrs,     // 32 -bytes FORS address
             uint8_t* const __restrict pkey           // n -bytes FORS public key
 )
 {
@@ -206,7 +206,7 @@ pk_from_sig(const uint8_t* const __restrict sig,     // k * n * (a + 1) -bytes F
     const size_t frm = i * a;
     const size_t to = (i + 1) * a - 1;
 
-    uint32_t idx = sphincs_utils::extract_contiguous_bits_as_u32(msg, frm, to);
+    uint32_t idx = sphincs_plus_utils::extract_contiguous_bits_as_u32(msg, frm, to);
 
     const size_t off0 = i * sig_elm_len;     // next n -bytes secret key value
     const size_t off1 = off0 + skey_val_len; // next a * n -bytes auth path
@@ -214,7 +214,7 @@ pk_from_sig(const uint8_t* const __restrict sig,     // k * n * (a + 1) -bytes F
     adrs.set_tree_height(0u);
     adrs.set_tree_index(i * t + idx);
 
-    sphincs_hashing::f<n, v>(pk_seed, adrs.data, sig + off0, c_nodes + 0);
+    sphincs_plus_hashing::f<n, v>(pk_seed, adrs.data, sig + off0, c_nodes + 0);
 
     for (uint32_t j = 0; j < a; j++) {
       const size_t off2 = off1 + j * n;
@@ -225,14 +225,14 @@ pk_from_sig(const uint8_t* const __restrict sig,     // k * n * (a + 1) -bytes F
         adrs.set_tree_index(adrs.get_tree_index() >> 1);
 
         std::memcpy(c_nodes + n, sig + off2, n);
-        sphincs_hashing::h<n, v>(pk_seed, adrs.data, c_nodes, tmp);
+        sphincs_plus_hashing::h<n, v>(pk_seed, adrs.data, c_nodes, tmp);
         std::memcpy(c_nodes + n, tmp, n);
       } else {
         adrs.set_tree_index((adrs.get_tree_index() - 1u) >> 1);
 
         std::memcpy(c_nodes + n, c_nodes + 0, n);
         std::memcpy(c_nodes + 0, sig + off2, n);
-        sphincs_hashing::h<n, v>(pk_seed, adrs.data, c_nodes, tmp);
+        sphincs_plus_hashing::h<n, v>(pk_seed, adrs.data, c_nodes, tmp);
         std::memcpy(c_nodes + n, tmp, n);
       }
 
@@ -243,12 +243,12 @@ pk_from_sig(const uint8_t* const __restrict sig,     // k * n * (a + 1) -bytes F
     std::memcpy(roots + off2, c_nodes + 0, n);
   }
 
-  sphincs_adrs::fors_roots_t roots_adrs{ adrs };
+  sphincs_plus_adrs::fors_roots_t roots_adrs{ adrs };
 
-  roots_adrs.set_type(sphincs_adrs::type_t::FORS_ROOTS);
+  roots_adrs.set_type(sphincs_plus_adrs::type_t::FORS_ROOTS);
   roots_adrs.set_keypair_address(adrs.get_keypair_address());
 
-  sphincs_hashing::t_l<n, k, v>(pk_seed, roots_adrs.data, roots, pkey);
+  sphincs_plus_hashing::t_l<n, k, v>(pk_seed, roots_adrs.data, roots, pkey);
 }
 
 }

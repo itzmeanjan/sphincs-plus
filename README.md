@@ -366,7 +366,7 @@ Here's an example program which demonstrates how to
 - Compute ( at compile-time ) how much memory to allocate for public key, secret key and signature, based on chosen parameter set
 
 > [!NOTE]
-> Utility routines live under namespace `sphincs_utils::`, in header [utils.hpp](./include/utils.hpp). You won't probably need to import it seperately, it becomes available with inclusion of [sphincs.hpp](./include/sphincs.hpp).
+> Utility routines live under namespace `sphincs_plus_utils::`, in header [utils.hpp](./include/utils.hpp). You won't probably need to import it seperately, it becomes available with inclusion of [sphincs.hpp](./include/sphincs.hpp).
 
 - Generate new keypair, using system randomness
 - Sign random 32 -bytes message, using secret key

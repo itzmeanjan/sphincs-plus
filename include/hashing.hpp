@@ -4,7 +4,7 @@
 
 // Tweakable hash functions, PRFs and keyed hash functions, for SPHINCS+-SHAKE
 // instantiation
-namespace sphincs_hashing {
+namespace sphincs_plus_hashing {
 
 // Used for parameterization of tweakable hash functions, in Sphincs+
 enum class variant : uint8_t

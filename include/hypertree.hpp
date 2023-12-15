@@ -2,7 +2,7 @@
 #include "xmss.hpp"
 
 // HT: The Hypertree, used in SPHINCS+
-namespace sphincs_ht {
+namespace sphincs_plus_ht {
 
 // Computes n -bytes hypertree public key, which is the root of the single XMSS
 // tree living on top layer ( i.e. layer index d - 1 ) of the hypertree, given n
@@ -13,20 +13,20 @@ template<uint32_t h,
          uint32_t d,
          size_t n,
          size_t w,
-         sphincs_hashing::variant v>
+         sphincs_plus_hashing::variant v>
 static inline void
 pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       uint8_t* const __restrict pkey           // n -bytes HT public key
       )
-  requires(sphincs_utils::check_ht_height_and_layer(h, d))
+  requires(sphincs_plus_utils::check_ht_height_and_layer(h, d))
 {
-  sphincs_adrs::adrs_t adrs{};
+  sphincs_plus_adrs::adrs_t adrs{};
 
   adrs.set_layer_address(d - 1u);
   adrs.set_tree_address(0ul);
 
-  sphincs_xmss::pkgen<h / d, n, w, v>(sk_seed, pk_seed, adrs, pkey);
+  sphincs_plus_xmss::pkgen<h / d, n, w, v>(sk_seed, pk_seed, adrs, pkey);
 }
 
 // Computes (h + d * len) * n -bytes HyperTree signature, consisting of d
@@ -44,7 +44,7 @@ template<uint32_t h,
          uint32_t d,
          size_t n,
          size_t w,
-         sphincs_hashing::variant v>
+         sphincs_plus_hashing::variant v>
 static inline void
 sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed )
      const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
@@ -53,21 +53,21 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed
      const uint32_t idx_leaf,                 // 4 -bytes leaf index in that XMSS tree
      uint8_t* const __restrict sig            // (h + d * len) * n -bytes HT signature
      )
-  requires(sphincs_utils::check_ht_height_and_layer(h, d))
+  requires(sphincs_plus_utils::check_ht_height_and_layer(h, d))
 {
-  constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
+  constexpr size_t len = sphincs_plus_utils::compute_wots_len<n, w>();
   constexpr uint32_t h_ = h / d;
   constexpr uint32_t mask = (1u << h_) - 1u;
   constexpr size_t xmss_sig_len = (static_cast<size_t>(h_) + len) * n;
 
-  sphincs_adrs::adrs_t adrs{};
+  sphincs_plus_adrs::adrs_t adrs{};
   uint8_t rt[n]{};
 
   adrs.set_layer_address(0u);
   adrs.set_tree_address(idx_tree);
 
-  sphincs_xmss::sign<h_, n, w, v>(msg, sk_seed, idx_leaf, pk_seed, adrs, sig);
-  sphincs_xmss::pk_from_sig<h_, n, w, v>(idx_leaf, sig, msg, pk_seed, adrs, rt);
+  sphincs_plus_xmss::sign<h_, n, w, v>(msg, sk_seed, idx_leaf, pk_seed, adrs, sig);
+  sphincs_plus_xmss::pk_from_sig<h_, n, w, v>(idx_leaf, sig, msg, pk_seed, adrs, rt);
 
   uint64_t itree = idx_tree;
   uint32_t ileaf = idx_leaf;
@@ -82,12 +82,12 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed
     adrs.set_layer_address(j);
     adrs.set_tree_address(itree);
 
-    sphincs_xmss::sign<h_, n, w, v>(rt, sk_seed, ileaf, pk_seed, adrs, sig_);
+    sphincs_plus_xmss::sign<h_, n, w, v>(rt, sk_seed, ileaf, pk_seed, adrs, sig_);
 
     if (j < (d - 1u)) {
       uint8_t t[n]{};
 
-      sphincs_xmss::pk_from_sig<h_, n, w, v>(ileaf, sig_, rt, pk_seed, adrs, t);
+      sphincs_plus_xmss::pk_from_sig<h_, n, w, v>(ileaf, sig_, rt, pk_seed, adrs, t);
       std::memcpy(rt, t, n);
     }
   }
@@ -101,7 +101,7 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed
 //
 // This routine returns truth value in case of successful hypertree signature
 // verification, otherwise it returns false.
-template<uint32_t h, uint32_t d, size_t n, size_t w, sphincs_hashing::variant v>
+template<uint32_t h, uint32_t d, size_t n, size_t w, sphincs_plus_hashing::variant v>
 static inline bool
 verify(const uint8_t* const __restrict msg,
        const uint8_t* const __restrict sig,
@@ -109,21 +109,21 @@ verify(const uint8_t* const __restrict msg,
        const uint64_t idx_tree,
        const uint32_t idx_leaf,
        const uint8_t* const __restrict pkey)
-  requires(sphincs_utils::check_ht_height_and_layer(h, d))
+  requires(sphincs_plus_utils::check_ht_height_and_layer(h, d))
 {
-  constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
+  constexpr size_t len = sphincs_plus_utils::compute_wots_len<n, w>();
   constexpr uint32_t h_ = h / d;
   constexpr uint32_t mask = (1u << h_) - 1u;
   constexpr size_t xmss_sig_len = (static_cast<size_t>(h_) + len) * n;
 
-  sphincs_adrs::adrs_t adrs{};
+  sphincs_plus_adrs::adrs_t adrs{};
   uint8_t nd[n]{};
   uint8_t tmp[n]{};
 
   adrs.set_layer_address(0u);
   adrs.set_tree_address(idx_tree);
 
-  sphincs_xmss::pk_from_sig<h_, n, w, v>(idx_leaf, sig, msg, pk_seed, adrs, nd);
+  sphincs_plus_xmss::pk_from_sig<h_, n, w, v>(idx_leaf, sig, msg, pk_seed, adrs, nd);
 
   uint64_t itree = idx_tree;
   uint32_t ileaf = idx_leaf;
@@ -138,7 +138,7 @@ verify(const uint8_t* const __restrict msg,
     adrs.set_layer_address(j);
     adrs.set_tree_address(itree);
 
-    sphincs_xmss::pk_from_sig<h_, n, w, v>(ileaf, sig_, nd, pk_seed, adrs, tmp);
+    sphincs_plus_xmss::pk_from_sig<h_, n, w, v>(ileaf, sig_, nd, pk_seed, adrs, tmp);
     std::memcpy(nd, tmp, n);
   }
 

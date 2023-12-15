@@ -17,11 +17,11 @@ main()
   constexpr uint32_t a = 12;
   constexpr uint32_t k = 14;
   constexpr size_t w = 16;
-  constexpr auto v = sphincs_hashing::variant::robust;
+  constexpr auto v = sphincs_plus_hashing::variant::robust;
 
   // Compile-time compute length of public key, secret key and signature, based
   // on which how much memory to allocate for each of them, can be decided
-  namespace utils = sphincs_utils;
+  namespace utils = sphincs_plus_utils;
 
   constexpr size_t pklen = utils::get_sphincs_pkey_len<n>();
   constexpr size_t sklen = utils::get_sphincs_skey_len<n>();
@@ -36,7 +36,7 @@ main()
   uint8_t* sig = static_cast<uint8_t*>(std::malloc(siglen));
 
   // Generate random message bytes
-  sphincs_utils::random_data<uint8_t>(msg, mlen);
+  sphincs_plus_utils::random_data<uint8_t>(msg, mlen);
 
   // step 1: generate random keypair
   sphincs::keygen<n, h, d, w, v>(skey, pkey);
@@ -46,10 +46,10 @@ main()
   const bool flg = sphincs::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
 
   std::cout << "SPHINCS+-SHAKE-128s-robust @ NIST Security Level 1\n";
-  std::cout << "Secret Key   : " << sphincs_utils::to_hex(skey, sklen) << "\n";
-  std::cout << "Public Key   : " << sphincs_utils::to_hex(pkey, pklen) << "\n";
-  std::cout << "Message      : " << sphincs_utils::to_hex(msg, mlen) << "\n";
-  std::cout << "Signature    : " << sphincs_utils::to_hex(sig, siglen) << "\n";
+  std::cout << "Secret Key   : " << sphincs_plus_utils::to_hex(skey, sklen) << "\n";
+  std::cout << "Public Key   : " << sphincs_plus_utils::to_hex(pkey, pklen) << "\n";
+  std::cout << "Message      : " << sphincs_plus_utils::to_hex(msg, mlen) << "\n";
+  std::cout << "Signature    : " << sphincs_plus_utils::to_hex(sig, siglen) << "\n";
   std::cout << "Verified      : " << std::boolalpha << flg << "\n";
 
   // release memory resources

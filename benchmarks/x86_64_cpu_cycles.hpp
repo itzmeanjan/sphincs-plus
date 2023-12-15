@@ -6,16 +6,17 @@
 #include <emmintrin.h>
 #include <x86intrin.h>
 
-// x86_64 architecture specific compiler built-in routine for computing CPU
-// cycles spent executing some instructions. For example
+// x86_64 architecture specific intrinsic for computing CPU cycles ( more specifically ticks ) spent executing a set of instructions. For example
 //
 // start = cpu_cycles()
 // {
-// ... bunch of instructions ...
+// ... bunch
+// ... of
+// ... instructions
 // }
 // end = cpu_cycles()
 //
-// CPU cycles spent executing code block = end - start
+// CPU cycles spent executing above code block = end - start
 static inline uint64_t
 cpu_cycles()
 {
