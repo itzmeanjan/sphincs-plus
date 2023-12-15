@@ -46,14 +46,14 @@ sign(const uint8_t* const __restrict msg,        // message to be signed
   sphincs_plus::sign<n, h, d, a, k, w, v>(msg, mlen, skey, rand_bytes, sig);
 }
 
-inline void
+inline bool
 verify(const uint8_t* const __restrict msg, // message which was signed
        const size_t mlen,                   // byte length of message
        const uint8_t* const __restrict sig, // SPHINCS+ signature
        const uint8_t* const __restrict pkey // SPHINCS+ public key of 2*n -bytes
 )
 {
-  sphincs_plus::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+  return sphincs_plus::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
 }
 
 }
