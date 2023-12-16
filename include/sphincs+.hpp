@@ -3,7 +3,7 @@
 #include "hypertree.hpp"
 
 // SPHINCS+ Signature Scheme, with generic API
-namespace sphincs_inner {
+namespace sphincs_plus {
 
 // SPHINCS+ key generation algorithm, where one can provide n -bytes secret key
 // seed, n -bytes secret key PRF and n -bytes public key seed as input, which
@@ -28,7 +28,7 @@ template<size_t n,
          uint32_t h,
          uint32_t d,
          size_t w,
-         sphincs_hashing::variant v>
+         sphincs_plus_hashing::variant v>
 static inline void
 keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
        const uint8_t* const __restrict sk_prf,  // n -bytes secret key PRF
@@ -36,10 +36,10 @@ keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
        uint8_t* const __restrict skey,          // 4*n -bytes SPHINCS+ secret key
        uint8_t* const __restrict pkey           // 2*n -bytes SPHINCS+ public key
        )
-  requires(sphincs_utils::check_keygen_params<n, h, d, w, v>())
+  requires(sphincs_plus_utils::check_keygen_params<n, h, d, w, v>())
 {
   uint8_t pk_root[n];
-  sphincs_ht::pkgen<h, d, n, w, v>(sk_seed, pk_seed, pk_root);
+  sphincs_plus_ht::pkgen<h, d, n, w, v>(sk_seed, pk_seed, pk_root);
 
   // prepare 2*n -bytes public key
   std::memcpy(pkey + 0, pk_seed, n);
@@ -74,7 +74,7 @@ template<size_t n,
          uint32_t a,
          uint32_t k,
          size_t w,
-         sphincs_hashing::variant v,
+         sphincs_plus_hashing::variant v,
          bool randomize = false>
 static inline void
 sign(const uint8_t* const __restrict msg,        // message to be signed
@@ -83,14 +83,14 @@ sign(const uint8_t* const __restrict msg,        // message to be signed
      const uint8_t* const __restrict rand_bytes, // Optional n -bytes randomness
      uint8_t* const __restrict sig               // SPHINCS+ signature
      )
-  requires(sphincs_utils::check_sign_verify_params<n, h, d, a, k, w, v>())
+  requires(sphincs_plus_utils::check_sign_verify_params<n, h, d, a, k, w, v>())
 {
   constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
   constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
   constexpr size_t ileaf_len = static_cast<size_t>(((h / d) + 7) >> 3);
   constexpr size_t m = md_len + itree_len + ileaf_len;
 
-  constexpr size_t fors_sl = sphincs_utils::compute_fors_sig_len<n, a, k>();
+  constexpr size_t fors_sl = sphincs_plus_utils::compute_fors_sig_len<n, a, k>();
 
   uint8_t* const sig0 = sig;            // Randomness portion
   uint8_t* const sig1 = sig0 + n;       // FORS signature portion
@@ -116,8 +116,8 @@ sign(const uint8_t* const __restrict msg,        // message to be signed
     std::memcpy(opt, pk_seed, n);
   }
 
-  sphincs_hashing::prf_msg<n>(sk_prf, opt, msg, mlen, sig0);
-  sphincs_hashing::h_msg<n, m>(sig0, pk_seed, pk_root, msg, mlen, dig);
+  sphincs_plus_hashing::prf_msg<n>(sk_prf, opt, msg, mlen, sig0);
+  sphincs_plus_hashing::h_msg<n, m>(sig0, pk_seed, pk_root, msg, mlen, dig);
 
   const uint8_t* const md = dig;
   const uint8_t* const tmp_itree = md + md_len;
@@ -136,18 +136,18 @@ sign(const uint8_t* const __restrict msg,        // message to be signed
   itree &= mask0;
   ileaf &= mask1;
 
-  sphincs_adrs::fors_tree_t adrs{};
+  sphincs_plus_adrs::fors_tree_t adrs{};
 
   adrs.set_layer_address(0u);
   adrs.set_tree_address(itree);
-  adrs.set_type(sphincs_adrs::type_t::FORS_TREE);
+  adrs.set_type(sphincs_plus_adrs::type_t::FORS_TREE);
   adrs.set_keypair_address(ileaf);
 
   uint8_t tmp[n];
 
-  sphincs_fors::sign<n, a, k, v>(md, sk_seed, pk_seed, adrs, sig1);
-  sphincs_fors::pk_from_sig<n, a, k, v>(sig1, md, pk_seed, adrs, tmp);
-  sphincs_ht::sign<h, d, n, w, v>(tmp, sk_seed, pk_seed, itree, ileaf, sig2);
+  sphincs_plus_fors::sign<n, a, k, v>(md, sk_seed, pk_seed, adrs, sig1);
+  sphincs_plus_fors::pk_from_sig<n, a, k, v>(sig1, md, pk_seed, adrs, tmp);
+  sphincs_plus_ht::sign<h, d, n, w, v>(tmp, sk_seed, pk_seed, itree, ileaf, sig2);
 }
 
 // Verifies a SPHINCS+ signature on a message of mlen -bytes using SPHINCS+
@@ -161,21 +161,21 @@ template<size_t n,
          uint32_t a,
          uint32_t k,
          size_t w,
-         sphincs_hashing::variant v>
+         sphincs_plus_hashing::variant v>
 static inline bool
 verify(const uint8_t* const __restrict msg, // message which was signed
        const size_t mlen,                   // byte length of message
        const uint8_t* const __restrict sig, // SPHINCS+ signature
        const uint8_t* const __restrict pkey // SPHINCS+ public key of 2*n -bytes
        )
-  requires(sphincs_utils::check_sign_verify_params<n, h, d, a, k, w, v>())
+  requires(sphincs_plus_utils::check_sign_verify_params<n, h, d, a, k, w, v>())
 {
   constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
   constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
   constexpr size_t ileaf_len = static_cast<size_t>(((h / d) + 7) >> 3);
   constexpr size_t m = md_len + itree_len + ileaf_len;
 
-  constexpr size_t fors_sl = sphincs_utils::compute_fors_sig_len<n, a, k>();
+  constexpr size_t fors_sl = sphincs_plus_utils::compute_fors_sig_len<n, a, k>();
 
   const uint8_t* const sig0 = sig;            // Randomness portion
   const uint8_t* const sig1 = sig0 + n;       // FORS signature portion
@@ -191,7 +191,7 @@ verify(const uint8_t* const __restrict msg, // message which was signed
   constexpr uint32_t mask1 = (1u << (h / d)) - 1ul;
 
   uint8_t dig[m];
-  sphincs_hashing::h_msg<n, m>(sig0, pk_seed, pk_root, msg, mlen, dig);
+  sphincs_plus_hashing::h_msg<n, m>(sig0, pk_seed, pk_root, msg, mlen, dig);
 
   const uint8_t* const md = dig;
   const uint8_t* const tmp_itree = md + md_len;
@@ -210,18 +210,18 @@ verify(const uint8_t* const __restrict msg, // message which was signed
   itree &= mask0;
   ileaf &= mask1;
 
-  sphincs_adrs::fors_tree_t adrs{};
+  sphincs_plus_adrs::fors_tree_t adrs{};
 
   adrs.set_layer_address(0u);
   adrs.set_tree_address(itree);
-  adrs.set_type(sphincs_adrs::type_t::FORS_TREE);
+  adrs.set_type(sphincs_plus_adrs::type_t::FORS_TREE);
   adrs.set_keypair_address(ileaf);
 
   uint8_t tmp[n];
 
-  sphincs_fors::pk_from_sig<n, a, k, v>(sig1, md, pk_seed, adrs, tmp);
+  sphincs_plus_fors::pk_from_sig<n, a, k, v>(sig1, md, pk_seed, adrs, tmp);
 
-  namespace ht = sphincs_ht;
+  namespace ht = sphincs_plus_ht;
   return ht::verify<h, d, n, w, v>(tmp, sig2, pk_seed, itree, ileaf, pk_root);
 }
 

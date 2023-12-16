@@ -1,4 +1,4 @@
-#include "sphincs_inner.hpp"
+#include "sphincs+.hpp"
 #include "utils.hpp"
 #include <cstddef>
 #include <cstdint>
@@ -12,7 +12,7 @@
 // Test functional correctness and conformance ( to the reference implementation based on specification document
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf ) of SPHINCS+ implementation, using Known Answer Tests,
 // generated following instructions described in https://gist.github.com/itzmeanjan/d483872509b8a1a7c4d6614ec9d43e6c.
-template<size_t n, uint32_t h, uint32_t d, uint32_t a, uint32_t k, size_t w, sphincs_hashing::variant v>
+template<size_t n, uint32_t h, uint32_t d, uint32_t a, uint32_t k, size_t w, sphincs_plus_hashing::variant v>
 static inline void
 test_sphincs_plus_kat(const std::string kat_file)
 {
@@ -26,28 +26,28 @@ test_sphincs_plus_kat(const std::string kat_file)
     if (!std::getline(file, sk_seed0).eof()) {
       auto sk_seed1 = std::string_view(sk_seed0);
       auto sk_seed2 = sk_seed1.substr(sk_seed1.find("="sv) + 2, sk_seed1.size());
-      auto sk_seed = sphincs_utils::from_hex(sk_seed2);
+      auto sk_seed = sphincs_plus_utils::from_hex(sk_seed2);
 
       std::string sk_prf0;
       std::getline(file, sk_prf0);
 
       auto sk_prf1 = std::string_view(sk_prf0);
       auto sk_prf2 = sk_prf1.substr(sk_prf1.find("="sv) + 2, sk_prf1.size());
-      auto sk_prf = sphincs_utils::from_hex(sk_prf2);
+      auto sk_prf = sphincs_plus_utils::from_hex(sk_prf2);
 
       std::string pk_seed0;
       std::getline(file, pk_seed0);
 
       auto pk_seed1 = std::string_view(pk_seed0);
       auto pk_seed2 = pk_seed1.substr(pk_seed1.find("="sv) + 2, pk_seed1.size());
-      auto pk_seed = sphincs_utils::from_hex(pk_seed2);
+      auto pk_seed = sphincs_plus_utils::from_hex(pk_seed2);
 
       std::string pk_root0;
       std::getline(file, pk_root0);
 
       auto pk_root1 = std::string_view(pk_root0);
       auto pk_root2 = pk_root1.substr(pk_root1.find("="sv) + 2, pk_root1.size());
-      auto pk_root = sphincs_utils::from_hex(pk_root2);
+      auto pk_root = sphincs_plus_utils::from_hex(pk_root2);
 
       std::string mlen0;
       std::getline(file, mlen0);
@@ -62,25 +62,25 @@ test_sphincs_plus_kat(const std::string kat_file)
 
       auto msg1 = std::string_view(msg0);
       auto msg2 = msg1.substr(msg1.find("="sv) + 2, msg1.size());
-      auto msg = sphincs_utils::from_hex(msg2);
+      auto msg = sphincs_plus_utils::from_hex(msg2);
 
       std::string opt0;
       std::getline(file, opt0);
 
       auto opt1 = std::string_view(opt0);
       auto opt2 = opt1.substr(opt1.find("="sv) + 2, opt1.size());
-      auto opt = sphincs_utils::from_hex(opt2);
+      auto opt = sphincs_plus_utils::from_hex(opt2);
 
       std::string sig0;
       std::getline(file, sig0);
 
       auto sig1 = std::string_view(sig0);
       auto sig2 = sig1.substr(sig1.find("="sv) + 2, sig1.size());
-      auto sig = sphincs_utils::from_hex(sig2);
+      auto sig = sphincs_plus_utils::from_hex(sig2);
 
-      constexpr size_t expected_pklen = sphincs_utils::get_sphincs_pkey_len<n>();
-      constexpr size_t expected_sklen = sphincs_utils::get_sphincs_skey_len<n>();
-      constexpr size_t expected_siglen = sphincs_utils::get_sphincs_sig_len<n, h, d, a, k, w>();
+      constexpr size_t expected_pklen = sphincs_plus_utils::get_sphincs_pkey_len<n>();
+      constexpr size_t expected_sklen = sphincs_plus_utils::get_sphincs_skey_len<n>();
+      constexpr size_t expected_siglen = sphincs_plus_utils::get_sphincs_sig_len<n, h, d, a, k, w>();
 
       const size_t computed_pklen = pk_seed.size() + pk_root.size();
       const size_t computed_sklen = sk_seed.size() + sk_prf.size() + computed_pklen;
@@ -95,9 +95,9 @@ test_sphincs_plus_kat(const std::string kat_file)
       std::vector<uint8_t> computed_sig(computed_siglen, 0);
 
       // Keygen -> (randomized) Sign -> Verify
-      sphincs_inner::keygen<n, h, d, w, v>(sk_seed.data(), sk_prf.data(), pk_seed.data(), skey.data(), pkey.data());
-      sphincs_inner::sign<n, h, d, a, k, w, v, true>(msg.data(), mlen, skey.data(), opt.data(), computed_sig.data());
-      const auto flag = sphincs_inner::verify<n, h, d, a, k, w, v>(msg.data(), mlen, computed_sig.data(), pkey.data());
+      sphincs_plus::keygen<n, h, d, w, v>(sk_seed.data(), sk_prf.data(), pk_seed.data(), skey.data(), pkey.data());
+      sphincs_plus::sign<n, h, d, a, k, w, v, true>(msg.data(), mlen, skey.data(), opt.data(), computed_sig.data());
+      const auto flag = sphincs_plus::verify<n, h, d, a, k, w, v>(msg.data(), mlen, computed_sig.data(), pkey.data());
 
       // Check if computed public key, secret key and signature matches expected ones, from KAT file.
       EXPECT_EQ(std::memcmp(pk_seed.data(), pkey.data(), pk_seed.size()), 0);
@@ -120,60 +120,60 @@ test_sphincs_plus_kat(const std::string kat_file)
 
 TEST(SphincsPlus, SphincsPlus128sRobustKnownAnswerTests)
 {
-  test_sphincs_plus_kat<16, 63, 7, 12, 14, 16, sphincs_hashing::variant::robust>("./kats/sphincs-shake-128s-robust.kat");
+  test_sphincs_plus_kat<16, 63, 7, 12, 14, 16, sphincs_plus_hashing::variant::robust>("./kats/sphincs-shake-128s-robust.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus128sSimpleKnownAnswerTests)
 {
-  test_sphincs_plus_kat<16, 63, 7, 12, 14, 16, sphincs_hashing::variant::simple>("./kats/sphincs-shake-128s-simple.kat");
+  test_sphincs_plus_kat<16, 63, 7, 12, 14, 16, sphincs_plus_hashing::variant::simple>("./kats/sphincs-shake-128s-simple.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus128fRobustKnownAnswerTests)
 {
-  test_sphincs_plus_kat<16, 66, 22, 6, 33, 16, sphincs_hashing::variant::robust>("./kats/sphincs-shake-128f-robust.kat");
+  test_sphincs_plus_kat<16, 66, 22, 6, 33, 16, sphincs_plus_hashing::variant::robust>("./kats/sphincs-shake-128f-robust.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus128fSimpleKnownAnswerTests)
 {
-  test_sphincs_plus_kat<16, 66, 22, 6, 33, 16, sphincs_hashing::variant::simple>("./kats/sphincs-shake-128f-simple.kat");
+  test_sphincs_plus_kat<16, 66, 22, 6, 33, 16, sphincs_plus_hashing::variant::simple>("./kats/sphincs-shake-128f-simple.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus192sRobustKnownAnswerTests)
 {
-  test_sphincs_plus_kat<24, 63, 7, 14, 17, 16, sphincs_hashing::variant::robust>("./kats/sphincs-shake-192s-robust.kat");
+  test_sphincs_plus_kat<24, 63, 7, 14, 17, 16, sphincs_plus_hashing::variant::robust>("./kats/sphincs-shake-192s-robust.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus192sSimpleKnownAnswerTests)
 {
-  test_sphincs_plus_kat<24, 63, 7, 14, 17, 16, sphincs_hashing::variant::simple>("./kats/sphincs-shake-192s-simple.kat");
+  test_sphincs_plus_kat<24, 63, 7, 14, 17, 16, sphincs_plus_hashing::variant::simple>("./kats/sphincs-shake-192s-simple.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus192fRobustKnownAnswerTests)
 {
-  test_sphincs_plus_kat<24, 66, 22, 8, 33, 16, sphincs_hashing::variant::robust>("./kats/sphincs-shake-192f-robust.kat");
+  test_sphincs_plus_kat<24, 66, 22, 8, 33, 16, sphincs_plus_hashing::variant::robust>("./kats/sphincs-shake-192f-robust.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus192fSimpleKnownAnswerTests)
 {
-  test_sphincs_plus_kat<24, 66, 22, 8, 33, 16, sphincs_hashing::variant::simple>("./kats/sphincs-shake-192f-simple.kat");
+  test_sphincs_plus_kat<24, 66, 22, 8, 33, 16, sphincs_plus_hashing::variant::simple>("./kats/sphincs-shake-192f-simple.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus256sRobustKnownAnswerTests)
 {
-  test_sphincs_plus_kat<32, 64, 8, 14, 22, 16, sphincs_hashing::variant::robust>("./kats/sphincs-shake-256s-robust.kat");
+  test_sphincs_plus_kat<32, 64, 8, 14, 22, 16, sphincs_plus_hashing::variant::robust>("./kats/sphincs-shake-256s-robust.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus256sSimpleKnownAnswerTests)
 {
-  test_sphincs_plus_kat<32, 64, 8, 14, 22, 16, sphincs_hashing::variant::simple>("./kats/sphincs-shake-256s-simple.kat");
+  test_sphincs_plus_kat<32, 64, 8, 14, 22, 16, sphincs_plus_hashing::variant::simple>("./kats/sphincs-shake-256s-simple.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus256fRobustKnownAnswerTests)
 {
-  test_sphincs_plus_kat<32, 68, 17, 9, 35, 16, sphincs_hashing::variant::robust>("./kats/sphincs-shake-256f-robust.kat");
+  test_sphincs_plus_kat<32, 68, 17, 9, 35, 16, sphincs_plus_hashing::variant::robust>("./kats/sphincs-shake-256f-robust.kat");
 }
 
 TEST(SphincsPlus, SphincsPlus256fSimpleKnownAnswerTests)
 {
-  test_sphincs_plus_kat<32, 68, 17, 9, 35, 16, sphincs_hashing::variant::simple>("./kats/sphincs-shake-256f-simple.kat");
+  test_sphincs_plus_kat<32, 68, 17, 9, 35, 16, sphincs_plus_hashing::variant::simple>("./kats/sphincs-shake-256f-simple.kat");
 }

@@ -13,17 +13,17 @@
 #include <type_traits>
 
 // Utility functions for SPHINCS+
-namespace sphincs_utils {
+namespace sphincs_plus_utils {
 
 // Compile-time check to ensure that SPHINCS+ key generation function is only
 // invoked with parameter sets suggested in table 3 of the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<size_t n, uint32_t h, uint32_t d, size_t w, sphincs_hashing::variant v>
+template<size_t n, uint32_t h, uint32_t d, size_t w, sphincs_plus_hashing::variant v>
 static inline constexpr bool
 check_keygen_params()
 {
   constexpr bool flg0 = w == 16;
-  constexpr bool flg1 = (v == sphincs_hashing::variant::robust) | (v == sphincs_hashing::variant::simple);
+  constexpr bool flg1 = (v == sphincs_plus_hashing::variant::robust) | (v == sphincs_plus_hashing::variant::simple);
 
   constexpr bool flg2 = (n == 16) & (h == 63) & (d == 7);
   constexpr bool flg3 = (n == 16) & (h == 66) & (d == 22);
@@ -38,12 +38,12 @@ check_keygen_params()
 // Compile-time check to ensure that SPHINCS+ sign/ verify function is only
 // invoked with parameter sets suggested in table 3 of the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<size_t n, uint32_t h, uint32_t d, uint32_t a, uint32_t k, size_t w, sphincs_hashing::variant v>
+template<size_t n, uint32_t h, uint32_t d, uint32_t a, uint32_t k, size_t w, sphincs_plus_hashing::variant v>
 static inline constexpr bool
 check_sign_verify_params()
 {
   constexpr bool flg0 = w == 16;
-  constexpr bool flg1 = (v == sphincs_hashing::variant::robust) || (v == sphincs_hashing::variant::simple);
+  constexpr bool flg1 = (v == sphincs_plus_hashing::variant::robust) || (v == sphincs_plus_hashing::variant::simple);
 
   const bool flg2 = (n == 16) & (h == 63) & (d == 7) & (a == 12) & (k == 14);
   const bool flg3 = (n == 16) & (h == 66) & (d == 22) & (a == 6) & (k == 33);

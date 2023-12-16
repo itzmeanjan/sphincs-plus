@@ -8,11 +8,11 @@
 // - Verifying signature by using public key and message
 //
 // with random data.
-template<uint32_t h, uint32_t d, size_t n, size_t w, sphincs_hashing::variant v>
+template<uint32_t h, uint32_t d, size_t n, size_t w, sphincs_plus_hashing::variant v>
 static inline void
 test_hypertree()
 {
-  constexpr size_t len = sphincs_utils::compute_wots_len<n, w>();
+  constexpr size_t len = sphincs_plus_utils::compute_wots_len<n, w>();
   constexpr size_t sig_len = (h + d * len) * n; // HT signature in bytes
   constexpr uint64_t itree = 0ul;               // XMSS tree index
   constexpr uint32_t ileaf = 0u;                // Leaf index in that XMSS tree
@@ -26,13 +26,13 @@ test_hypertree()
   uint8_t* pkey = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n));
   uint8_t* sig = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * sig_len));
 
-  sphincs_utils::random_data<uint8_t>(sk_seed, n);
-  sphincs_utils::random_data<uint8_t>(pk_seed, n);
-  sphincs_utils::random_data<uint8_t>(msg, n);
+  sphincs_plus_utils::random_data<uint8_t>(sk_seed, n);
+  sphincs_plus_utils::random_data<uint8_t>(pk_seed, n);
+  sphincs_plus_utils::random_data<uint8_t>(msg, n);
 
-  sphincs_ht::pkgen<h, d, n, w, v>(sk_seed, pk_seed, pkey);
-  sphincs_ht::sign<h, d, n, w, v>(msg, sk_seed, pk_seed, itree, ileaf, sig);
-  const bool flag = sphincs_ht::verify<h, d, n, w, v>(msg, sig, pk_seed, itree, ileaf, pkey);
+  sphincs_plus_ht::pkgen<h, d, n, w, v>(sk_seed, pk_seed, pkey);
+  sphincs_plus_ht::sign<h, d, n, w, v>(msg, sk_seed, pk_seed, itree, ileaf, sig);
+  const bool flag = sphincs_plus_ht::verify<h, d, n, w, v>(msg, sig, pk_seed, itree, ileaf, pkey);
 
   std::free(sk_seed);
   std::free(pk_seed);
@@ -45,24 +45,24 @@ test_hypertree()
 
 TEST(SphincsPlus, HyperTreeNISTSecurityLevel1)
 {
-  test_hypertree<63, 7, 16, 16, sphincs_hashing::variant::robust>();
-  test_hypertree<63, 7, 16, 16, sphincs_hashing::variant::simple>();
-  test_hypertree<66, 22, 16, 16, sphincs_hashing::variant::robust>();
-  test_hypertree<66, 22, 16, 16, sphincs_hashing::variant::simple>();
+  test_hypertree<63, 7, 16, 16, sphincs_plus_hashing::variant::robust>();
+  test_hypertree<63, 7, 16, 16, sphincs_plus_hashing::variant::simple>();
+  test_hypertree<66, 22, 16, 16, sphincs_plus_hashing::variant::robust>();
+  test_hypertree<66, 22, 16, 16, sphincs_plus_hashing::variant::simple>();
 }
 
 TEST(SphincsPlus, HyperTreeNISTSecurityLevel3)
 {
-  test_hypertree<63, 7, 24, 16, sphincs_hashing::variant::robust>();
-  test_hypertree<63, 7, 24, 16, sphincs_hashing::variant::simple>();
-  test_hypertree<66, 22, 24, 16, sphincs_hashing::variant::robust>();
-  test_hypertree<66, 22, 24, 16, sphincs_hashing::variant::simple>();
+  test_hypertree<63, 7, 24, 16, sphincs_plus_hashing::variant::robust>();
+  test_hypertree<63, 7, 24, 16, sphincs_plus_hashing::variant::simple>();
+  test_hypertree<66, 22, 24, 16, sphincs_plus_hashing::variant::robust>();
+  test_hypertree<66, 22, 24, 16, sphincs_plus_hashing::variant::simple>();
 }
 
 TEST(SphincsPlus, HyperTreeNISTSecurityLevel5)
 {
-  test_hypertree<64, 8, 32, 16, sphincs_hashing::variant::robust>();
-  test_hypertree<64, 8, 32, 16, sphincs_hashing::variant::simple>();
-  test_hypertree<68, 17, 32, 16, sphincs_hashing::variant::robust>();
-  test_hypertree<68, 17, 32, 16, sphincs_hashing::variant::simple>();
+  test_hypertree<64, 8, 32, 16, sphincs_plus_hashing::variant::robust>();
+  test_hypertree<64, 8, 32, 16, sphincs_plus_hashing::variant::simple>();
+  test_hypertree<68, 17, 32, 16, sphincs_plus_hashing::variant::robust>();
+  test_hypertree<68, 17, 32, 16, sphincs_plus_hashing::variant::simple>();
 }
