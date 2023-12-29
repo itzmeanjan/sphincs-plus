@@ -21,7 +21,7 @@ chain(const uint8_t* const __restrict x,       // n -bytes
       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
       uint8_t* const __restrict chained        // n -bytes output
       )
-  requires(sphincs_plus_utils::check_w(w))
+  requires(sphincs_plus_params::check_w(w))
 {
   const uint32_t till = s_idx + steps;
   const bool flg = static_cast<size_t>(till) > (w - 1ul);

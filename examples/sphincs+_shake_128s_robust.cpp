@@ -1,6 +1,21 @@
 #include "sphincs+_128s_robust.hpp"
 #include <iostream>
 
+// Given a bytearray of length N, this function converts it to human readable
+// hex string of length N << 1 | N >= 0
+static inline const std::string
+to_hex(const uint8_t* const bytes, const size_t len)
+{
+  std::stringstream ss;
+  ss << std::hex;
+
+  for (size_t i = 0; i < len; i++) {
+    ss << std::setw(2) << std::setfill('0') << static_cast<uint32_t>(bytes[i]);
+  }
+
+  return ss.str();
+}
+
 // Compile it with
 //
 // g++ -std=c++20 -Wall -O3 -march=native -I include -I sha3/include sphincs+_shake_128s_robust.cpp
@@ -33,10 +48,10 @@ main()
   const bool flag = sphincs_plus_128s_robust::verify(msg, mlen, sig, pkey);
 
   std::cout << "SPHINCS+-SHAKE-128s-robust @ NIST Security Level 1\n";
-  std::cout << "Secret Key   : " << sphincs_plus_utils::to_hex(skey, sphincs_plus_128s_robust::SecKeyLen) << "\n";
-  std::cout << "Public Key   : " << sphincs_plus_utils::to_hex(pkey, sphincs_plus_128s_robust::PubKeyLen) << "\n";
-  std::cout << "Message      : " << sphincs_plus_utils::to_hex(msg, mlen) << "\n";
-  std::cout << "Signature    : " << sphincs_plus_utils::to_hex(sig, sphincs_plus_128s_robust::SigLen) << "\n";
+  std::cout << "Secret Key   : " << to_hex(skey, sphincs_plus_128s_robust::SecKeyLen) << "\n";
+  std::cout << "Public Key   : " << to_hex(pkey, sphincs_plus_128s_robust::PubKeyLen) << "\n";
+  std::cout << "Message      : " << to_hex(msg, mlen) << "\n";
+  std::cout << "Signature    : " << to_hex(sig, sphincs_plus_128s_robust::SigLen) << "\n";
   std::cout << "Verified      : " << std::boolalpha << flag << "\n";
 
   // release memory resources
