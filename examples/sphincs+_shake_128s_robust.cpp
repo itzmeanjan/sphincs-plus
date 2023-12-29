@@ -1,15 +1,19 @@
+#include "prng.hpp"
 #include "sphincs+_128s_robust.hpp"
+#include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <vector>
 
 // Given a bytearray of length N, this function converts it to human readable
 // hex string of length N << 1 | N >= 0
 static inline const std::string
-to_hex(const uint8_t* const bytes, const size_t len)
+to_hex(std::span<const uint8_t> bytes)
 {
   std::stringstream ss;
   ss << std::hex;
 
-  for (size_t i = 0; i < len; i++) {
+  for (size_t i = 0; i < bytes.size(); i++) {
     ss << std::setw(2) << std::setfill('0') << static_cast<uint32_t>(bytes[i]);
   }
 
@@ -22,46 +26,44 @@ to_hex(const uint8_t* const bytes, const size_t len)
 int
 main()
 {
+  // Byte length of message to be signed is fixed to 32 -bytes, in this example.
   constexpr size_t mlen = 32;
 
-  // Allocate memory for seeds, public key, secret key, message ( fixed to 32 -bytes in this example ) and signature
-  uint8_t* sk_seed = static_cast<uint8_t*>(std::malloc(sphincs_plus_128s_robust::n));
-  uint8_t* sk_prf = static_cast<uint8_t*>(std::malloc(sphincs_plus_128s_robust::n));
-  uint8_t* pk_seed = static_cast<uint8_t*>(std::malloc(sphincs_plus_128s_robust::n));
-  uint8_t* pkey = static_cast<uint8_t*>(std::malloc(sphincs_plus_128s_robust::PubKeyLen));
-  uint8_t* skey = static_cast<uint8_t*>(std::malloc(sphincs_plus_128s_robust::SecKeyLen));
-  uint8_t* msg = static_cast<uint8_t*>(std::malloc(mlen));
-  uint8_t* sig = static_cast<uint8_t*>(std::malloc(sphincs_plus_128s_robust::SigLen));
+  std::vector<uint8_t> sk_seed(sphincs_plus_128s_robust::n, 0);
+  std::vector<uint8_t> sk_prf(sphincs_plus_128s_robust::n, 0);
+  std::vector<uint8_t> pk_seed(sphincs_plus_128s_robust::n, 0);
+  std::vector<uint8_t> pkey(sphincs_plus_128s_robust::PubKeyLen, 0);
+  std::vector<uint8_t> skey(sphincs_plus_128s_robust::SecKeyLen, 0);
+  std::vector<uint8_t> msg(mlen, 0);
+  std::vector<uint8_t> sig(sphincs_plus_128s_robust::SigLen, 0);
 
-  sphincs_plus_utils::random_data<uint8_t>(sk_seed, sphincs_plus_128s_robust::n);
-  sphincs_plus_utils::random_data<uint8_t>(sk_prf, sphincs_plus_128s_robust::n);
-  sphincs_plus_utils::random_data<uint8_t>(pk_seed, sphincs_plus_128s_robust::n);
-  sphincs_plus_utils::random_data<uint8_t>(msg, mlen);
+  auto _sk_seed = std::span<uint8_t, sphincs_plus_128s_robust::n>(sk_seed);
+  auto _sk_prf = std::span<uint8_t, sphincs_plus_128s_robust::n>(sk_prf);
+  auto _pk_seed = std::span<uint8_t, sphincs_plus_128s_robust::n>(pk_seed);
+  auto _msg = std::span(msg);
+
+  prng::prng_t prng;
+
+  prng.read(_sk_seed);
+  prng.read(_sk_prf);
+  prng.read(_pk_seed);
+  prng.read(_msg);
 
   // step 1: generate random keypair
-  sphincs_plus_128s_robust::keygen(sk_seed, sk_prf, pk_seed, skey, pkey);
+  sphincs_plus_128s_robust::keygen(_sk_seed.data(), _sk_prf.data(), _pk_seed.data(), skey.data(), pkey.data());
   // step 2: sign N(>0) -bytes message, using secret key
   //
   // In case of randomized message signing, `rand_bytes` must be pointing to n -bytes random seed, otherwise it can safely be passed as nullptr.
-  sphincs_plus_128s_robust::sign(msg, mlen, skey, nullptr, sig);
+  sphincs_plus_128s_robust::sign(_msg.data(), mlen, skey.data(), nullptr, sig.data());
   // step 3: verify signature, using public key
-  const bool flag = sphincs_plus_128s_robust::verify(msg, mlen, sig, pkey);
+  const bool flag = sphincs_plus_128s_robust::verify(_msg.data(), mlen, sig.data(), pkey.data());
 
   std::cout << "SPHINCS+-SHAKE-128s-robust @ NIST Security Level 1\n";
-  std::cout << "Secret Key   : " << to_hex(skey, sphincs_plus_128s_robust::SecKeyLen) << "\n";
-  std::cout << "Public Key   : " << to_hex(pkey, sphincs_plus_128s_robust::PubKeyLen) << "\n";
-  std::cout << "Message      : " << to_hex(msg, mlen) << "\n";
-  std::cout << "Signature    : " << to_hex(sig, sphincs_plus_128s_robust::SigLen) << "\n";
+  std::cout << "Secret Key   : " << to_hex(skey) << "\n";
+  std::cout << "Public Key   : " << to_hex(pkey) << "\n";
+  std::cout << "Message      : " << to_hex(msg) << "\n";
+  std::cout << "Signature    : " << to_hex(sig) << "\n";
   std::cout << "Verified      : " << std::boolalpha << flag << "\n";
-
-  // release memory resources
-  std::free(sk_seed);
-  std::free(sk_prf);
-  std::free(pk_seed);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(sig);
 
   // ensure that SPHINCS+ keygen -> sign -> verify works as expected !
   assert(flag);
