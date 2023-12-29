@@ -1,5 +1,6 @@
 #pragma once
 #include "shake256.hpp"
+#include <array>
 #include <cstring>
 
 // Tweakable hash functions, PRFs and keyed hash functions, for SPHINCS+-SHAKE
@@ -28,19 +29,18 @@ h_msg(const uint8_t* const __restrict r,
       const size_t mlen,
       uint8_t* const __restrict dig)
 {
-  uint8_t tmp[n + n + n];
-  std::memcpy(tmp + 0, r, n);
-  std::memcpy(tmp + n, pk_seed, n);
-  std::memcpy(tmp + n + n, pk_root, n);
+  std::array<uint8_t, n + n + n> tmp{};
 
-  shake256::shake256<true> hasher{};
+  std::memcpy(tmp.data() + 0, r, n);
+  std::memcpy(tmp.data() + n, pk_seed, n);
+  std::memcpy(tmp.data() + n + n, pk_root, n);
 
-  hasher.absorb(tmp, sizeof(tmp));
-  hasher.absorb(msg, mlen);
+  shake256::shake256_t hasher;
 
+  hasher.absorb(tmp);
+  hasher.absorb(std::span(msg, mlen));
   hasher.finalize();
-
-  hasher.read(dig, m);
+  hasher.squeeze(std::span(dig, m));
 }
 
 // Given n -bytes public key seed, n -bytes secret key seed and 32 -bytes
@@ -53,15 +53,17 @@ template<size_t n>
 static inline void
 prf(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict sk_seed, const uint8_t* const __restrict adrs, uint8_t* const __restrict dig)
 {
-  uint8_t tmp[n + 32 + n];
-  std::memcpy(tmp + 0, pk_seed, n);
-  std::memcpy(tmp + n, adrs, 32);
-  std::memcpy(tmp + n + 32, sk_seed, n);
+  std::array<uint8_t, n + 32 + n> tmp{};
 
-  shake256::shake256 hasher{};
-  hasher.hash(tmp, sizeof(tmp));
+  std::memcpy(tmp.data() + 0, pk_seed, n);
+  std::memcpy(tmp.data() + n, adrs, 32);
+  std::memcpy(tmp.data() + n + 32, sk_seed, n);
 
-  hasher.read(dig, n);
+  shake256::shake256_t hasher;
+
+  hasher.absorb(tmp);
+  hasher.finalize();
+  hasher.squeeze(std::span(dig, n));
 }
 
 // Given n -bytes secret key prf, n -bytes OptRand and mlen -bytes message ( to
@@ -78,18 +80,17 @@ prf_msg(const uint8_t* const __restrict sk_prf,
         const size_t mlen,
         uint8_t* const __restrict dig)
 {
-  uint8_t tmp[n + n];
-  std::memcpy(tmp + 0, sk_prf, n);
-  std::memcpy(tmp + n, opt_rand, n);
+  std::array<uint8_t, n + n> tmp{};
 
-  shake256::shake256<true> hasher{};
+  std::memcpy(tmp.data() + 0, sk_prf, n);
+  std::memcpy(tmp.data() + n, opt_rand, n);
 
-  hasher.absorb(tmp, sizeof(tmp));
-  hasher.absorb(msg, mlen);
+  shake256::shake256_t hasher;
 
+  hasher.absorb(tmp);
+  hasher.absorb(std::span(msg, mlen));
   hasher.finalize();
-
-  hasher.read(dig, n);
+  hasher.squeeze(std::span(dig, n));
 }
 
 // Given n -bytes public key seed, 32 -bytes address and n * l -bytes message,
@@ -104,14 +105,16 @@ gen_mask(const uint8_t* const __restrict pk_seed, const uint8_t* const __restric
 {
   constexpr size_t mlen = n * l;
 
-  uint8_t tmp[n + 32];
-  std::memcpy(tmp + 0, pk_seed, n);
-  std::memcpy(tmp + n, adrs, 32);
+  std::array<uint8_t, n + 32> tmp{};
 
-  shake256::shake256 hasher{};
-  hasher.hash(tmp, sizeof(tmp));
+  std::memcpy(tmp.data() + 0, pk_seed, n);
+  std::memcpy(tmp.data() + n, adrs, 32);
 
-  hasher.read(dig, mlen);
+  shake256::shake256_t hasher;
+
+  hasher.absorb(tmp);
+  hasher.finalize();
+  hasher.squeeze(std::span(dig, mlen));
 
   for (size_t i = 0; i < mlen; i++) {
     dig[i] ^= msg[i];
@@ -133,26 +136,26 @@ t_l(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adr
 {
   constexpr size_t mlen = n * l;
 
-  uint8_t tmp[n + 32];
-  std::memcpy(tmp + 0, pk_seed, n);
-  std::memcpy(tmp + n, adrs, 32);
+  std::array<uint8_t, n + 32> tmp{};
 
-  shake256::shake256<true> hasher{};
+  std::memcpy(tmp.data() + 0, pk_seed, n);
+  std::memcpy(tmp.data() + n, adrs, 32);
 
-  hasher.absorb(tmp, sizeof(tmp));
+  shake256::shake256_t hasher;
+
+  hasher.absorb(tmp);
 
   if constexpr (v == variant::robust) {
-    uint8_t masked[mlen]{};
-    gen_mask<n, l>(pk_seed, adrs, msg, masked);
+    std::array<uint8_t, mlen> masked{};
+    gen_mask<n, l>(pk_seed, adrs, msg, masked.data());
 
-    hasher.absorb(masked, mlen);
+    hasher.absorb(masked);
   } else {
-    hasher.absorb(msg, mlen);
+    hasher.absorb(std::span(msg, mlen));
   }
 
   hasher.finalize();
-
-  hasher.read(dig, n);
+  hasher.squeeze(std::span(dig, n));
 }
 
 // Given n -bytes public key seed, 32 -bytes address and n -bytes message,
