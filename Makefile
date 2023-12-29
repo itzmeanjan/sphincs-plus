@@ -20,6 +20,7 @@ TEST_BINARY = $(BUILD_DIR)/test.out
 
 BENCHMARK_DIR = benchmarks
 BENCHMARK_SOURCES := $(wildcard $(BENCHMARK_DIR)/*.cpp)
+BENCHMARK_HEADERS := $(wildcard $(BENCHMARK_DIR)/*.hpp)
 BENCHMARK_OBJECTS := $(addprefix $(BUILD_DIR)/, $(notdir $(patsubst %.cpp,%.o,$(BENCHMARK_SOURCES))))
 BENCHMARK_LINK_FLAGS = -lbenchmark -lbenchmark_main -lpthread
 BENCHMARK_BINARY = $(BUILD_DIR)/bench.out
@@ -65,5 +66,5 @@ perf: $(PERF_BINARY)
 clean:
 	rm -rf $(BUILD_DIR)
 
-format: $(SPHINCS+_SOURCES) $(TEST_SOURCES) $(BENCHMARK_SOURCES)
+format: $(SPHINCS+_SOURCES) $(TEST_SOURCES) $(BENCHMARK_SOURCES) $(BENCHMARK_HEADERS)
 	clang-format -i $^
