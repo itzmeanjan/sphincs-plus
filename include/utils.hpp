@@ -124,24 +124,45 @@ get_sphincs_sig_len()
   return n + compute_fors_sig_len<n, a, k>() + compute_ht_sig_len<h, d, n, w>();
 }
 
-// Given a 32 -bit word, this routine extracts out each byte from that word and
-// places them in a big endian byte array.
-static inline void
-to_be_bytes(const uint32_t word, uint8_t* const bytes)
+// Given a 32 -bit unsigned integer word, this routine swaps byte order and returns byte swapped 32 -bit word.
+//
+// Collects inspiration from https://github.com/itzmeanjan/ascon/blob/f31d9085c096021cc4da6191398d2bf2d5805be0/include/utils.hpp#L17-L47.
+static inline constexpr uint32_t
+bswap(const uint32_t a)
 {
-  bytes[0] = static_cast<uint8_t>(word >> 24);
-  bytes[1] = static_cast<uint8_t>(word >> 16);
-  bytes[2] = static_cast<uint8_t>(word >> 8);
-  bytes[3] = static_cast<uint8_t>(word >> 0);
+#if defined __GNUG__ || defined __MINGW64__
+  return __builtin_bswap32(a);
+#elif defined _MSC_VER
+  return _byteswap_uint32(a);
+#else
+  return ((a & 0x000000ffu) << 24) | ((a & 0x0000ff00u) << 8) | ((a & 0x00ff0000u) >> 8) | ((a & 0xff000000u) >> 24);
+#endif
 }
 
-// Given a byte array of length 4, this routine converts it to a big endian 32
-// -bit word.
-static inline uint32_t
-from_be_bytes(const uint8_t* const bytes)
+// Given a 32 -bit word, this routine extracts out each byte from that word and places them in a big endian byte array.
+static inline void
+to_be_bytes(const uint32_t word, std::span<uint8_t, sizeof(word)> bytes)
 {
-  return (static_cast<uint32_t>(bytes[0]) << 24) | (static_cast<uint32_t>(bytes[1]) << 16) | (static_cast<uint32_t>(bytes[2]) << 8) |
-         (static_cast<uint32_t>(bytes[3]) << 0);
+  if constexpr (std::endian::native == std::endian::little) {
+    const uint32_t swapped = bswap(word);
+    std::memcpy(bytes.data(), &swapped, sizeof(swapped));
+  } else {
+    std::memcpy(bytes.data(), &word, sizeof(word));
+  }
+}
+
+// Given a byte array of length 4, this routine converts it to a big endian 32 -bit word.
+static inline uint32_t
+from_be_bytes(std::span<const uint8_t, 4> bytes)
+{
+  uint32_t res = 0;
+  std::memcpy(&res, bytes.data(), bytes.size());
+
+  if constexpr (std::endian::native == std::endian::little) {
+    res = bswap(res);
+  }
+
+  return res;
 }
 
 // Compile-time check to ensure that output length of base-w string is within
@@ -169,21 +190,23 @@ check_olen()
 //
 // See section 2.4 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<typename T, size_t y>
+template<size_t y>
 static inline std::array<uint8_t, y>
-to_byte(const T x)
-  requires(std::is_unsigned_v<T>)
+to_byte(const uint32_t x)
 {
-  constexpr size_t blen = sizeof(T);
-  constexpr bool flg = y > blen;
-  constexpr size_t br[]{ 0, y - blen };
-  constexpr size_t start = br[flg];
-
   std::array<uint8_t, y> res{};
+  auto _res = std::span(res);
 
-  for (size_t i = start; i < y; i++) {
-    const size_t shr = ((y - 1) - i) << 3;
-    res[i] = static_cast<uint8_t>(x >> shr);
+  if constexpr (y > sizeof(x)) {
+    constexpr size_t start_at = y - sizeof(x);
+    to_be_bytes(x, res.template subspan<start_at, sizeof(x)>());
+  } else {
+    if constexpr (std::endian::native == std::endian::little) {
+      const uint32_t swapped = bswap(x);
+      std::memcpy(_res.data(), &swapped, _res.size());
+    } else {
+      std::memcpy(_res.data(), &x, _res.size());
+    }
   }
 
   return res;
@@ -196,7 +219,7 @@ to_byte(const T x)
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t w, size_t ilen, size_t olen>
 static inline void
-base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
+base_w(std::span<const uint8_t, ilen> in, std::span<uint8_t, olen> out)
   requires(check_olen<w, ilen, olen>())
 {
   constexpr size_t lgw = log2<w>();
@@ -217,7 +240,7 @@ base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
       out[i] = (in[off] >> boff) & mask;
     }
   } else {
-    std::memcpy(out, in, olen);
+    std::copy(in.begin(), in.end(), out.begin());
   }
 }
 
@@ -228,17 +251,12 @@ base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
 // contiguous bits are now interpreted as an 32 -bit unsigned integer
 // ∈ [0, t) | a <= 32 and t = 2^a
 static inline uint32_t
-extract_contiguous_bits_as_u32(const uint8_t* const __restrict msg, // byte array to extract bits from
-                               const uint32_t frm_idx,              // starting bit index
-                               const uint32_t to_idx                // ending bit index
+extract_contiguous_bits_as_u32(std::span<const uint8_t> msg, // byte array to extract bits from
+                               const uint32_t frm_idx,       // starting bit index
+                               const uint32_t to_idx         // ending bit index
 )
 {
   constexpr uint8_t mask = 0b1;
-
-  assert(to_idx > frm_idx);
-  const uint32_t bits = to_idx - frm_idx + 1u;
-  assert(bits <= 32u);
-
   uint32_t res = 0u;
 
   for (uint32_t i = frm_idx; i <= to_idx; i++) {
