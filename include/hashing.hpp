@@ -2,6 +2,7 @@
 #include "shake256.hpp"
 #include <array>
 #include <cstring>
+#include <span>
 
 // Tweakable hash functions, PRFs and keyed hash functions, for SPHINCS+-SHAKE
 // instantiation
@@ -16,54 +17,55 @@ enum class variant : uint8_t
 
 // Given n -bytes root, n -bytes public key seed, n -bytes public key root and
 // mlen -bytes message ( to be signed ), this routine uses SHAKE256, as a keyed
-// hash function, for compressing message, while extracting out m -bytes output
+// hash function, for compressing message, while extracting out m -bytes output.
 //
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t m>
-static inline void
-h_msg(const uint8_t* const __restrict r,
-      const uint8_t* const __restrict pk_seed,
-      const uint8_t* const __restrict pk_root,
-      const uint8_t* const __restrict msg,
-      const size_t mlen,
-      uint8_t* const __restrict dig)
+static inline constexpr void
+h_msg(std::span<const uint8_t, n> r,
+      std::span<const uint8_t, n> pk_seed,
+      std::span<const uint8_t, n> pk_root,
+      std::span<const uint8_t> msg,
+      std::span<uint8_t, m> dig)
 {
-  std::array<uint8_t, n + n + n> tmp{};
+  std::array<uint8_t, r.size() + pk_seed.size() + pk_root.size()> tmp{};
+  auto _tmp = std::span(tmp);
 
-  std::memcpy(tmp.data() + 0, r, n);
-  std::memcpy(tmp.data() + n, pk_seed, n);
-  std::memcpy(tmp.data() + n + n, pk_root, n);
+  std::copy(r.begin(), r.end(), _tmp.template subspan<0, r.size()>().begin());
+  std::copy(pk_seed.begin(), pk_seed.end(), _tmp.template subspan<r.size(), pk_seed.size()>().begin());
+  std::copy(pk_root.begin(), pk_root.end(), _tmp.template subspan<r.size() + pk_seed.size(), pk_root.size()>().begin());
 
   shake256::shake256_t hasher;
 
   hasher.absorb(tmp);
-  hasher.absorb(std::span(msg, mlen));
+  hasher.absorb(msg);
   hasher.finalize();
-  hasher.squeeze(std::span(dig, m));
+  hasher.squeeze(dig);
 }
 
 // Given n -bytes public key seed, n -bytes secret key seed and 32 -bytes
 // address, this routine makes use of SHAKE256, as pseudorandom function, for
-// generating pseudorandom key of byte length n
+// generating pseudorandom key of byte length n.
 //
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n>
-static inline void
-prf(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict sk_seed, const uint8_t* const __restrict adrs, uint8_t* const __restrict dig)
+static inline constexpr void
+prf(std::span<const uint8_t, n> pk_seed, std::span<const uint8_t, n> sk_seed, std::span<const uint8_t, 32> adrs, std::span<uint8_t, n> dig)
 {
-  std::array<uint8_t, n + 32 + n> tmp{};
+  std::array<uint8_t, pk_seed.size() + adrs.size() + sk_seed.size()> tmp{};
+  auto _tmp = std::span(tmp);
 
-  std::memcpy(tmp.data() + 0, pk_seed, n);
-  std::memcpy(tmp.data() + n, adrs, 32);
-  std::memcpy(tmp.data() + n + 32, sk_seed, n);
+  std::copy(pk_seed.begin(), pk_seed.end(), _tmp.template subspan<0, pk_seed.size()>().begin());
+  std::copy(adrs.begin(), adrs.end(), _tmp.template subspan<pk_seed.size(), adrs.size()>().begin());
+  std::copy(sk_seed.begin(), sk_seed.end(), _tmp.template subspan<pk_seed.size() + adrs.size(), sk_seed.size()>().begin());
 
   shake256::shake256_t hasher;
 
   hasher.absorb(tmp);
   hasher.finalize();
-  hasher.squeeze(std::span(dig, n));
+  hasher.squeeze(dig);
 }
 
 // Given n -bytes secret key prf, n -bytes OptRand and mlen -bytes message ( to
@@ -73,24 +75,21 @@ prf(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict sk_
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n>
-static inline void
-prf_msg(const uint8_t* const __restrict sk_prf,
-        const uint8_t* const __restrict opt_rand,
-        const uint8_t* const __restrict msg,
-        const size_t mlen,
-        uint8_t* const __restrict dig)
+static inline constexpr void
+prf_msg(std::span<const uint8_t, n> sk_prf, std::span<const uint8_t, n> opt_rand, std::span<const uint8_t> msg, std::span<uint8_t, n> dig)
 {
-  std::array<uint8_t, n + n> tmp{};
+  std::array<uint8_t, sk_prf.size() + opt_rand.size()> tmp{};
+  auto _tmp = std::span(tmp);
 
-  std::memcpy(tmp.data() + 0, sk_prf, n);
-  std::memcpy(tmp.data() + n, opt_rand, n);
+  std::copy(sk_prf.begin(), sk_prf.end(), _tmp.template subspan<0, sk_prf.size()>().begin());
+  std::copy(opt_rand.begin(), opt_rand.end(), _tmp.template subspan<sk_prf.size(), opt_rand.size()>().begin());
 
   shake256::shake256_t hasher;
 
   hasher.absorb(tmp);
-  hasher.absorb(std::span(msg, mlen));
+  hasher.absorb(msg);
   hasher.finalize();
-  hasher.squeeze(std::span(dig, n));
+  hasher.squeeze(dig);
 }
 
 // Given n -bytes public key seed, 32 -bytes address and n * l -bytes message,
@@ -100,23 +99,28 @@ prf_msg(const uint8_t* const __restrict sk_prf,
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t l>
-static inline void
-gen_mask(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
+static inline constexpr void
+gen_mask(std::span<const uint8_t, n> pk_seed, std::span<const uint8_t, 32> adrs, std::span<const uint8_t, n * l> msg, std::span<uint8_t, n * l> dig)
 {
-  constexpr size_t mlen = n * l;
+  std::array<uint8_t, pk_seed.size() + adrs.size()> tmp{};
+  auto _tmp = std::span(tmp);
 
-  std::array<uint8_t, n + 32> tmp{};
-
-  std::memcpy(tmp.data() + 0, pk_seed, n);
-  std::memcpy(tmp.data() + n, adrs, 32);
+  std::copy(pk_seed.begin(), pk_seed.end(), _tmp.template subspan<0, pk_seed.size()>().begin());
+  std::copy(adrs.begin(), adrs.end(), _tmp.template subspan<pk_seed.size(), adrs.size()>().begin());
 
   shake256::shake256_t hasher;
 
   hasher.absorb(tmp);
   hasher.finalize();
-  hasher.squeeze(std::span(dig, mlen));
+  hasher.squeeze(dig);
 
-  for (size_t i = 0; i < mlen; i++) {
+#if defined __clang__
+#pragma clang loop unroll(enable)
+#pragma clang loop vectorize(enable)
+#elif defined __GNUG__
+#pragma GCC unroll 16
+#endif
+  for (size_t i = 0; i < dig.size(); i++) {
     dig[i] ^= msg[i];
   }
 }
@@ -131,31 +135,30 @@ gen_mask(const uint8_t* const __restrict pk_seed, const uint8_t* const __restric
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t l, variant v>
-static inline void
-t_l(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
+static inline constexpr void
+t_l(std::span<const uint8_t, n> pk_seed, std::span<const uint8_t, 32> adrs, std::span<const uint8_t, n * l> msg, std::span<uint8_t, n> dig)
 {
-  constexpr size_t mlen = n * l;
+  std::array<uint8_t, pk_seed.size() + adrs.size()> tmp{};
+  auto _tmp = std::span(tmp);
 
-  std::array<uint8_t, n + 32> tmp{};
-
-  std::memcpy(tmp.data() + 0, pk_seed, n);
-  std::memcpy(tmp.data() + n, adrs, 32);
+  std::copy(pk_seed.begin(), pk_seed.end(), _tmp.template subspan<0, pk_seed.size()>().begin());
+  std::copy(adrs.begin(), adrs.end(), _tmp.template subspan<pk_seed.size(), adrs.size()>().begin());
 
   shake256::shake256_t hasher;
 
   hasher.absorb(tmp);
 
   if constexpr (v == variant::robust) {
-    std::array<uint8_t, mlen> masked{};
-    gen_mask<n, l>(pk_seed, adrs, msg, masked.data());
+    std::array<uint8_t, msg.size()> masked{};
+    gen_mask<n, l>(pk_seed, adrs, msg, masked);
 
     hasher.absorb(masked);
   } else {
-    hasher.absorb(std::span(msg, mlen));
+    hasher.absorb(msg);
   }
 
   hasher.finalize();
-  hasher.squeeze(std::span(dig, n));
+  hasher.squeeze(dig);
 }
 
 // Given n -bytes public key seed, 32 -bytes address and n -bytes message,
@@ -170,8 +173,8 @@ t_l(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adr
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, variant v>
-static inline void
-f(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
+static inline constexpr void
+f(std::span<const uint8_t, n> pk_seed, std::span<const uint8_t, 32> adrs, std::span<const uint8_t, n> msg, std::span<uint8_t, n> dig)
 {
   t_l<n, 1, v>(pk_seed, adrs, msg, dig);
 }
@@ -188,8 +191,8 @@ f(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs,
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, variant v>
-static inline void
-h(const uint8_t* const __restrict pk_seed, const uint8_t* const __restrict adrs, const uint8_t* const __restrict msg, uint8_t* const __restrict dig)
+static inline constexpr void
+h(std::span<const uint8_t, n> pk_seed, std::span<const uint8_t, 32> adrs, std::span<const uint8_t, 2 * n> msg, std::span<uint8_t, n> dig)
 {
   t_l<n, 2, v>(pk_seed, adrs, msg, dig);
 }
