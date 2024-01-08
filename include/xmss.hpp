@@ -82,7 +82,7 @@ treehash(std::span<const uint8_t, n> sk_seed,
 
   const node_t<n> top = stack.top();
   std::copy(top.data.begin(), top.data.end(), root.begin());
-  stack.pop(); // Drop root of Merkle Tree, stack is empty now.
+  stack.pop(); // Drop root of XMSS Tree, stack is empty now.
 }
 
 // Computes XMSS public key, which is the n -bytes root of the binary hash tree,
