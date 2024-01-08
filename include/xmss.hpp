@@ -1,6 +1,5 @@
 #pragma once
 #include "wots.hpp"
-#include <cassert>
 #include <stack>
 
 // Fixed Input-Length XMSS, used in SPHINCS+
@@ -14,8 +13,10 @@ namespace sphincs_plus_xmss {
 template<size_t n>
 struct node_t
 {
-  uint8_t data[n]{};
+  std::array<uint8_t, n> data{};
   uint32_t height = 0u;
+
+  constexpr node_t<n>() = default;
 };
 
 // Computes n -bytes root node of a subtree of height `n_height` with leftmost
@@ -24,19 +25,15 @@ struct node_t
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t w, sphincs_plus_hashing::variant v>
 static inline void
-treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-         const uint32_t s_idx,                    // 4 -bytes start index
-         const uint32_t n_height,                 // 4 -bytes target node height
-         const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-         const sphincs_plus_adrs::adrs_t adrs,    // 32 -bytes address of containing tree
-         uint8_t* const __restrict root           // n -bytes root of subtree of height
-                                                  // `n_height`
-)
+treehash(std::span<const uint8_t, n> sk_seed,
+         const uint32_t s_idx,
+         const uint32_t n_height,
+         std::span<const uint8_t, n> pk_seed,
+         const sphincs_plus_adrs::adrs_t adrs,
+         std::span<uint8_t, n> root)
 {
   // # -of leafs in the subtree
   const uint32_t leaf_cnt = 1u << n_height;
-  assert((s_idx % leaf_cnt) == 0);
-
   // Stack which will hold at max `n_height` many intermediate nodes
   std::stack<node_t<n>> stack;
 
@@ -59,7 +56,8 @@ treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
     // Two consecutive nodes, each of n -bytes width
     //
     // Used for computing parent node of binary Merkle Tree, from two children
-    uint8_t c_nodes[n + n]{};
+    std::array<uint8_t, n + n> c_nodes{};
+    auto _c_nodes = std::span(c_nodes);
 
     while (!stack.empty()) {
       const auto top = stack.top();
@@ -69,10 +67,10 @@ treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 
       tree_adrs.set_tree_index((tree_adrs.get_tree_index() - 1u) >> 1);
 
-      std::memcpy(c_nodes + 0, top.data, n);
-      std::memcpy(c_nodes + n, node.data, n);
+      std::copy(top.data.begin(), top.data.end(), _c_nodes.template subspan<0, n>().begin());
+      std::copy(node.data.begin(), node.data.end(), _c_nodes.template subspan<n, n>().begin());
 
-      sphincs_plus_hashing::h<n, v>(pk_seed, tree_adrs.data, c_nodes, node.data);
+      sphincs_plus_hashing::h<n, v>(pk_seed, tree_adrs.data, _c_nodes, node.data);
       node.height = tree_adrs.get_tree_height() + 1u;
 
       tree_adrs.set_tree_height(tree_adrs.get_tree_height() + 1u);
@@ -83,23 +81,16 @@ treehash(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
   }
 
   const node_t<n> top = stack.top();
-  std::memcpy(root, top.data, n);
-  stack.pop(); // stack must be empty now !
+  std::copy(top.data.begin(), top.data.end(), root.begin());
+  stack.pop(); // Drop root of Merkle Tree, stack is empty now.
 }
 
 // Computes XMSS public key, which is the n -bytes root of the binary hash tree,
 // of height h, using algorithm 8, described in section 4.1.4 of SPHINCS+
 // specification https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<uint32_t h,
-         size_t n,
-         size_t w,
-         sphincs_plus_hashing::variant v>
+template<uint32_t h, size_t n, size_t w, sphincs_plus_hashing::variant v>
 static inline void
-pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-      const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-      const sphincs_plus_adrs::adrs_t adrs,    // 32 -bytes address of containing tree
-      uint8_t* const __restrict pkey           // n -bytes public key
-)
+pkgen(std::span<const uint8_t, n> sk_seed, std::span<const uint8_t, n> pk_seed, const sphincs_plus_adrs::adrs_t adrs, std::span<uint8_t, n> pkey)
 {
   treehash<n, w, v>(sk_seed, 0u, h, pk_seed, adrs, pkey);
 }
@@ -114,18 +105,14 @@ pkgen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
 //
 // Find the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<uint32_t h,
-         size_t n,
-         size_t w,
-         sphincs_plus_hashing::variant v>
+template<uint32_t h, size_t n, size_t w, sphincs_plus_hashing::variant v>
 static inline void
-sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed )
-     const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-     const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
-     const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-     const sphincs_plus_adrs::adrs_t adrs,    // 32 -bytes address of XMSS instance
-     uint8_t* const __restrict sig            // (len * n + h * n) -bytes signature
-)
+sign(std::span<const uint8_t, n> msg,
+     std::span<const uint8_t, n> sk_seed,
+     const uint32_t idx,
+     std::span<const uint8_t, n> pk_seed,
+     const sphincs_plus_adrs::adrs_t adrs,
+     std::span<uint8_t, sphincs_plus_utils::compute_wots_len<n, w>() * n + h * n> sig)
 {
   constexpr size_t len = sphincs_plus_utils::compute_wots_len<n, w>();
   constexpr size_t off0 = 0ul;
@@ -136,7 +123,7 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed
     const size_t off = off1 + off2;
 
     const uint32_t k = (idx >> j) ^ 1u;
-    treehash<n, w, v>(sk_seed, k << j, j, pk_seed, adrs, sig + off);
+    treehash<n, w, v>(sk_seed, k << j, j, pk_seed, adrs, std::span<uint8_t, n>(sig.subspan(off, n)));
   }
 
   sphincs_plus_adrs::wots_hash_t wots_adrs{ adrs };
@@ -144,7 +131,7 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed
   wots_adrs.set_type(sphincs_plus_adrs::type_t::WOTS_HASH);
   wots_adrs.set_keypair_address(idx);
 
-  sphincs_plus_wots::sign<n, w, v>(msg, sk_seed, pk_seed, wots_adrs, sig);
+  sphincs_plus_wots::sign<n, w, v>(msg, sk_seed, pk_seed, wots_adrs, sig.template subspan<off0, off1>());
 }
 
 // Computes n -bytes XMSS public key from (len * n + h * n) -bytes XMSS
@@ -155,18 +142,14 @@ sign(const uint8_t* const __restrict msg,     // n -bytes message ( to be signed
 // It uses algorithm 10 for implicit XMSS signature verification, which is
 // described in section 4.1.7 of the specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<uint32_t h,
-         size_t n,
-         size_t w,
-         sphincs_plus_hashing::variant v>
+template<uint32_t h, size_t n, size_t w, sphincs_plus_hashing::variant v>
 static inline void
-pk_from_sig(const uint32_t idx,                      // 4 -bytes WOTS+ keypair index
-            const uint8_t* const __restrict sig,     // (len * n + h * n) -bytes signature
-            const uint8_t* const __restrict msg,     // n -bytes message
-            const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-            const sphincs_plus_adrs::adrs_t adrs,    // 32 -bytes address of XMSS instance
-            uint8_t* const __restrict pkey           // n -bytes public key
-)
+pk_from_sig(const uint32_t idx,
+            std::span<const uint8_t, sphincs_plus_utils::compute_wots_len<n, w>() * n + h * n> sig,
+            std::span<const uint8_t, n> msg,
+            std::span<const uint8_t, n> pk_seed,
+            const sphincs_plus_adrs::adrs_t adrs,
+            std::span<uint8_t, n> pkey)
 {
   constexpr size_t len = sphincs_plus_utils::compute_wots_len<n, w>();
   constexpr size_t soff = len * n;
@@ -174,17 +157,18 @@ pk_from_sig(const uint32_t idx,                      // 4 -bytes WOTS+ keypair i
   // Two consecutive nodes, each of n -bytes width
   //
   // Used for computing parent node of binary Merkle Tree, from two children
-  uint8_t c_nodes[n + n]{};
+  std::array<uint8_t, n + n> c_nodes{};
+  auto _c_nodes = std::span(c_nodes);
 
   // Single node, used for temporarily storing computed n -bytes digest
-  uint8_t tmp[n]{};
+  std::array<uint8_t, n> tmp{};
 
   sphincs_plus_adrs::wots_hash_t hash_adrs{ adrs };
 
   hash_adrs.set_type(sphincs_plus_adrs::type_t::WOTS_HASH);
   hash_adrs.set_keypair_address(idx);
 
-  sphincs_plus_wots::pk_from_sig<n, w, v>(sig, msg, pk_seed, hash_adrs, c_nodes);
+  sphincs_plus_wots::pk_from_sig<n, w, v>(sig.template subspan<0, soff>(), msg, pk_seed, hash_adrs, _c_nodes.template subspan<0, n>());
 
   sphincs_plus_adrs::tree_t tree_adrs{ adrs };
 
@@ -201,22 +185,32 @@ pk_from_sig(const uint32_t idx,                      // 4 -bytes WOTS+ keypair i
     if (!flg) {
       tree_adrs.set_tree_index(tree_adrs.get_tree_index() >> 1);
 
-      std::memcpy(c_nodes + n, sig + off, n);
-      sphincs_plus_hashing::h<n, v>(pk_seed, tree_adrs.data, c_nodes, tmp);
-      std::memcpy(c_nodes + n, tmp, n);
+      auto _sig = std::span<uint8_t, n>(sig.subspan(off, n));
+      std::copy(_sig.begin(), _sig.end(), _c_nodes.template subspan<n, n>().begin());
+
+      sphincs_plus_hashing::h<n, v>(pk_seed, tree_adrs.data, _c_nodes, tmp);
+
+      std::copy(tmp.begin(), tmp.end(), _c_nodes.template subspan<n, n>().begin());
     } else {
       tree_adrs.set_tree_index((tree_adrs.get_tree_index() - 1u) >> 1);
 
-      std::memcpy(c_nodes + n, c_nodes + 0, n);
-      std::memcpy(c_nodes + 0, sig + off, n);
-      sphincs_plus_hashing::h<n, v>(pk_seed, tree_adrs.data, c_nodes, tmp);
-      std::memcpy(c_nodes + n, tmp, n);
+      auto __c_nodes = _c_nodes.template subspan<0, n>();
+      std::copy(_c_nodes.begin(), __c_nodes.end(), _c_nodes.template subspan<n, n>().begin());
+
+      auto _sig = std::span<uint8_t, n>(sig.subspan(off, n));
+      std::copy(_sig.begin(), _sig.end(), _c_nodes.template subspan<0, n>().begin());
+
+      sphincs_plus_hashing::h<n, v>(pk_seed, tree_adrs.data, _c_nodes, tmp);
+
+      std::copy(tmp.begin(), tmp.end(), _c_nodes.template subspan<n, n>().begin());
     }
 
-    std::memcpy(c_nodes + 0, c_nodes + n, n);
+    auto __c_nodes = _c_nodes.template subspan<n, n>();
+    std::copy(_c_nodes.begin(), __c_nodes.end(), _c_nodes.template subspan<0, n>().begin());
   }
 
-  std::memcpy(pkey, c_nodes + 0, n);
+  auto __c_nodes = _c_nodes.template subspan<0, n>();
+  std::copy(__c_nodes.begin(), __c_nodes.end(), pkey.begin());
 }
 
 }
