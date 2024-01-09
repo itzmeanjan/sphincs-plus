@@ -99,7 +99,7 @@ prf_msg(std::span<const uint8_t, n> sk_prf, std::span<const uint8_t, n> opt_rand
 // See section 7.2.1 of Sphincs+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t n, size_t l>
-static inline constexpr void
+static inline void
 gen_mask(std::span<const uint8_t, n> pk_seed, std::span<const uint8_t, 32> adrs, std::span<const uint8_t, n * l> msg, std::span<uint8_t, n * l> dig)
 {
   std::array<uint8_t, pk_seed.size() + adrs.size()> tmp{};
@@ -119,8 +119,9 @@ gen_mask(std::span<const uint8_t, n> pk_seed, std::span<const uint8_t, 32> adrs,
 #pragma clang loop vectorize(enable)
 #elif defined __GNUG__
 #pragma GCC unroll 16
+#pragma GCC ivdep
 #endif
-  for (size_t i = 0; i < dig.size(); i++) {
+  for (size_t i = 0; i < n * l; i++) {
     dig[i] ^= msg[i];
   }
 }

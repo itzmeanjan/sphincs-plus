@@ -185,7 +185,7 @@ pk_from_sig(const uint32_t idx,
     if (!flg) {
       tree_adrs.set_tree_index(tree_adrs.get_tree_index() >> 1);
 
-      auto _sig = std::span<uint8_t, n>(sig.subspan(off, n));
+      auto _sig = std::span<const uint8_t, n>(sig.subspan(off, n));
       std::copy(_sig.begin(), _sig.end(), _c_nodes.template subspan<n, n>().begin());
 
       sphincs_plus_hashing::h<n, v>(pk_seed, tree_adrs.data, _c_nodes, tmp);
@@ -195,9 +195,9 @@ pk_from_sig(const uint32_t idx,
       tree_adrs.set_tree_index((tree_adrs.get_tree_index() - 1u) >> 1);
 
       auto __c_nodes = _c_nodes.template subspan<0, n>();
-      std::copy(_c_nodes.begin(), __c_nodes.end(), _c_nodes.template subspan<n, n>().begin());
+      std::copy(__c_nodes.begin(), __c_nodes.end(), _c_nodes.template subspan<n, n>().begin());
 
-      auto _sig = std::span<uint8_t, n>(sig.subspan(off, n));
+      auto _sig = std::span<const uint8_t, n>(sig.subspan(off, n));
       std::copy(_sig.begin(), _sig.end(), _c_nodes.template subspan<0, n>().begin());
 
       sphincs_plus_hashing::h<n, v>(pk_seed, tree_adrs.data, _c_nodes, tmp);
@@ -206,7 +206,7 @@ pk_from_sig(const uint32_t idx,
     }
 
     auto __c_nodes = _c_nodes.template subspan<n, n>();
-    std::copy(_c_nodes.begin(), __c_nodes.end(), _c_nodes.template subspan<0, n>().begin());
+    std::copy(__c_nodes.begin(), __c_nodes.end(), _c_nodes.template subspan<0, n>().begin());
   }
 
   auto __c_nodes = _c_nodes.template subspan<0, n>();

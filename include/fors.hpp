@@ -202,7 +202,7 @@ pk_from_sig(std::span<const uint8_t, (k * n * (a + 1))> sig,
     adrs.set_tree_height(0u);
     adrs.set_tree_index(i * t + idx);
 
-    sphincs_plus_hashing::f<n, v>(pk_seed, adrs.data, std::span<uint8_t, n>(sig.subspan(off0, skey_val_len)), _c_nodes.template subspan<0, n>());
+    sphincs_plus_hashing::f<n, v>(pk_seed, adrs.data, std::span<const uint8_t, n>(sig.subspan(off0, skey_val_len)), _c_nodes.template subspan<0, n>());
 
     for (uint32_t j = 0; j < a; j++) {
       const size_t off2 = off1 + j * n;
@@ -212,7 +212,7 @@ pk_from_sig(std::span<const uint8_t, (k * n * (a + 1))> sig,
       if (!flg) {
         adrs.set_tree_index(adrs.get_tree_index() >> 1);
 
-        auto _sig = std::span<uint8_t, n>(sig.subspan(off2, n));
+        auto _sig = std::span<const uint8_t, n>(sig.subspan(off2, n));
         std::copy(_sig.begin(), _sig.end(), _c_nodes.template subspan<n, n>().begin());
 
         sphincs_plus_hashing::h<n, v>(pk_seed, adrs.data, _c_nodes, tmp);
@@ -222,9 +222,9 @@ pk_from_sig(std::span<const uint8_t, (k * n * (a + 1))> sig,
         adrs.set_tree_index((adrs.get_tree_index() - 1u) >> 1);
 
         auto __c_nodes = _c_nodes.template subspan<0, n>();
-        std::copy(_c_nodes.begin(), __c_nodes.end(), _c_nodes.template subspan<n, n>().begin());
+        std::copy(__c_nodes.begin(), __c_nodes.end(), _c_nodes.template subspan<n, n>().begin());
 
-        auto _sig = std::span<uint8_t, n>(sig.subspan(off2, n));
+        auto _sig = std::span<const uint8_t, n>(sig.subspan(off2, n));
         std::copy(_sig.begin(), _sig.end(), _c_nodes.template subspan<0, n>().begin());
 
         sphincs_plus_hashing::h<n, v>(pk_seed, adrs.data, _c_nodes, tmp);
@@ -233,12 +233,12 @@ pk_from_sig(std::span<const uint8_t, (k * n * (a + 1))> sig,
       }
 
       auto __c_nodes = _c_nodes.template subspan<n, n>();
-      std::copy(_c_nodes.begin(), __c_nodes.end(), _c_nodes.template subspan<0, n>().begin());
+      std::copy(__c_nodes.begin(), __c_nodes.end(), _c_nodes.template subspan<0, n>().begin());
     }
 
     const size_t off2 = i * n; // next n -bytes i -th FORS tree root
     auto __c_nodes = _c_nodes.template subspan<0, n>();
-    std::copy(__c_nodes.begin(), __c_nodes.end(), std::array<uint8_t, n>(_roots.subspan(off2, n)).begin());
+    std::copy(__c_nodes.begin(), __c_nodes.end(), std::span<uint8_t, n>(_roots.subspan(off2, n)).begin());
   }
 
   sphincs_plus_adrs::fors_roots_t roots_adrs{ adrs };

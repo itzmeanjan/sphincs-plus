@@ -97,7 +97,7 @@ sign(std::span<const uint8_t, n> msg,
   constexpr size_t len1 = sphincs_plus_utils::compute_wots_len1<n, w>();
   constexpr size_t len2 = sphincs_plus_utils::compute_wots_len2<n, w, len1>();
   constexpr size_t len = len1 + len2;
-  static_assert(sig.size() == len, "Ensure that WOTS+ signature size is correctly computed !");
+  static_assert(sig.size() == len * n, "Ensure that WOTS+ signature size is correctly computed !");
 
   uint32_t csum = 0;
   std::array<uint8_t, sig.size()> tmp{};
@@ -110,6 +110,7 @@ sign(std::span<const uint8_t, n> msg,
 #pragma clang loop vectorize(enable)
 #elif defined __GNUG__
 #pragma GCC unroll 16
+#pragma GCC ivdep
 #endif
   for (size_t i = 0; i < len1; i++) {
     csum += static_cast<uint32_t>(w - 1ul) - static_cast<uint32_t>(tmp[i]);
@@ -123,7 +124,7 @@ sign(std::span<const uint8_t, n> msg,
   constexpr size_t t1 = t0 + 7ul;
   constexpr size_t len_2_bytes = t1 >> 3; // = ceil(t0 / 8)
 
-  const auto bytes = sphincs_plus_utils::to_byte<uint32_t, len_2_bytes>(csum);
+  const auto bytes = sphincs_plus_utils::to_byte<len_2_bytes>(csum);
   sphincs_plus_utils::base_w<w, len_2_bytes, len2>(bytes, _tmp.template subspan<len1, len2>());
 
   sphincs_plus_adrs::wots_prf_t sk_adrs{ adrs };
@@ -166,7 +167,7 @@ pk_from_sig(std::span<const uint8_t, n * sphincs_plus_utils::compute_wots_len<n,
   constexpr size_t len1 = sphincs_plus_utils::compute_wots_len1<n, w>();
   constexpr size_t len2 = sphincs_plus_utils::compute_wots_len2<n, w, len1>();
   constexpr size_t len = len1 + len2;
-  static_assert(sig.size() == len, "Ensure that WOTS+ signature size is correctly computed !");
+  static_assert(sig.size() == len * n, "Ensure that WOTS+ signature size is correctly computed !");
 
   sphincs_plus_adrs::wots_pk_t pk_adrs{ adrs };
 
@@ -181,6 +182,7 @@ pk_from_sig(std::span<const uint8_t, n * sphincs_plus_utils::compute_wots_len<n,
 #pragma clang loop vectorize(enable)
 #elif defined __GNUG__
 #pragma GCC unroll 16
+#pragma GCC ivdep
 #endif
   for (size_t i = 0; i < len1; i++) {
     csum += static_cast<uint32_t>(w - 1ul) - static_cast<uint32_t>(_tmp0[i]);
@@ -194,8 +196,8 @@ pk_from_sig(std::span<const uint8_t, n * sphincs_plus_utils::compute_wots_len<n,
   constexpr size_t t1 = t0 + 7ul;
   constexpr size_t len_2_bytes = t1 >> 3; // = ceil(t0 / 8)
 
-  const auto bytes = sphincs_plus_utils::to_byte<uint32_t, len_2_bytes>(csum);
-  sphincs_plus_utils::base_w<w, len_2_bytes, len2>(bytes.data(), _tmp0.template subspan<len1, len2>());
+  const auto bytes = sphincs_plus_utils::to_byte<len_2_bytes>(csum);
+  sphincs_plus_utils::base_w<w, len_2_bytes, len2>(bytes, _tmp0.template subspan<len1, len2>());
 
   std::array<uint8_t, n * len> tmp1{};
   auto _tmp1 = std::span(tmp1);
@@ -208,7 +210,7 @@ pk_from_sig(std::span<const uint8_t, n * sphincs_plus_utils::compute_wots_len<n,
 
     const uint32_t sidx = static_cast<uint32_t>(_tmp0[i]);
     const uint32_t steps = static_cast<uint32_t>((w - 1) - _tmp0[i]);
-    chain<n, w, v>(sig + off, sidx, steps, adrs, pk_seed, std::span<uint8_t, n>(_tmp1.subspan(off, n)));
+    chain<n, w, v>(std::span<const uint8_t, n>(sig.subspan(off, n)), sidx, steps, adrs, pk_seed, std::span<uint8_t, n>(_tmp1.subspan(off, n)));
   }
 
   pk_adrs.set_type(sphincs_plus_adrs::type_t::WOTS_PK);

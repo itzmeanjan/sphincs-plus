@@ -120,7 +120,7 @@ verify(std::span<const uint8_t, n> msg,
 
   for (uint32_t j = 1; j < d; j++) {
     const size_t off = static_cast<size_t>(j) * xmss_sig_len;
-    auto _sig = std::span<uint8_t, xmss_sig_len>(sig.subspan(off, xmss_sig_len));
+    auto _sig = std::span<const uint8_t, xmss_sig_len>(sig.subspan(off, xmss_sig_len));
 
     ileaf = static_cast<uint32_t>(itree) & mask;
     itree = itree >> h_;
