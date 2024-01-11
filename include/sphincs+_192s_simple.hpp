@@ -37,7 +37,7 @@ template<bool randomize = false>
 inline void
 sign(std::span<const uint8_t> msg, std::span<const uint8_t, SecKeyLen> skey, std::span<const uint8_t, n * randomize> rand_bytes, std::span<uint8_t, SigLen> sig)
 {
-  sphincs_plus::sign<n, h, d, a, k, w, v>(msg, skey, rand_bytes, sig);
+  sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(msg, skey, rand_bytes, sig);
 }
 
 inline bool
