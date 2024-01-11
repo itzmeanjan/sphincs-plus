@@ -131,7 +131,7 @@ sign(std::span<const uint8_t, n> msg,
   wots_adrs.set_type(sphincs_plus_adrs::type_t::WOTS_HASH);
   wots_adrs.set_keypair_address(idx);
 
-  sphincs_plus_wots::sign<n, w, v>(msg, sk_seed, pk_seed, wots_adrs, sig.template subspan<off0, off1>());
+  sphincs_plus_wots::sign<n, w, v>(msg, sk_seed, pk_seed, wots_adrs, sig.template subspan<off0, off1 - off0>());
 }
 
 // Computes n -bytes XMSS public key from (len * n + h * n) -bytes XMSS

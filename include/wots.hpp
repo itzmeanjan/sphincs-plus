@@ -105,13 +105,6 @@ sign(std::span<const uint8_t, n> msg,
 
   sphincs_plus_utils::base_w<w, n, len1>(msg, _tmp.template subspan<0, len1>());
 
-#if defined __clang__
-#pragma clang loop unroll(enable)
-#pragma clang loop vectorize(enable)
-#elif defined __GNUG__
-#pragma GCC unroll 16
-#pragma GCC ivdep
-#endif
   for (size_t i = 0; i < len1; i++) {
     csum += static_cast<uint32_t>(w - 1ul) - static_cast<uint32_t>(tmp[i]);
   }
@@ -177,13 +170,6 @@ pk_from_sig(std::span<const uint8_t, n * sphincs_plus_utils::compute_wots_len<n,
 
   sphincs_plus_utils::base_w<w, n, len1>(msg, _tmp0.template subspan<0, len1>());
 
-#if defined __clang__
-#pragma clang loop unroll(enable)
-#pragma clang loop vectorize(enable)
-#elif defined __GNUG__
-#pragma GCC unroll 16
-#pragma GCC ivdep
-#endif
   for (size_t i = 0; i < len1; i++) {
     csum += static_cast<uint32_t>(w - 1ul) - static_cast<uint32_t>(_tmp0[i]);
   }

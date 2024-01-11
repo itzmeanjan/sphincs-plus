@@ -180,12 +180,11 @@ check_olen()
   return olen <= max;
 }
 
-// Given an unsigned integer ( whose type can be templated ), this routine
-// returns a big endian byte array of length y.
+// Given an unsigned 32 -bit integer x, this routine returns a big endian byte array of length y, representing x.
 //
 // Two edge cases, to keep in mind,
 //
-// - If y > sizeof(x), then extra bytes will be zerod.
+// - If y > sizeof(x), then extra bytes will be zeroed.
 // - If y < sizeof(x) and x requires > y -bytes to be represented properly some
 // bits may be lost.
 //
@@ -200,7 +199,7 @@ to_byte(const uint32_t x)
 
   if constexpr (y > sizeof(x)) {
     constexpr size_t start_at = y - sizeof(x);
-    to_be_bytes(x, res.template subspan<start_at, sizeof(x)>());
+    to_be_bytes(x, _res.template subspan<start_at, sizeof(x)>());
   } else {
     if constexpr (std::endian::native == std::endian::little) {
       const uint32_t swapped = bswap(x);
