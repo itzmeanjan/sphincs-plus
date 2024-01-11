@@ -184,9 +184,14 @@ check_olen()
 //
 // Two edge cases, to keep in mind,
 //
-// - If y > sizeof(x), then extra bytes will be zeroed.
-// - If y < sizeof(x) and x requires > y -bytes to be represented properly some
-// bits may be lost.
+// - (1) If y > sizeof(x), then extra bytes will be zeroed.
+// - (2) If y < sizeof(x) and x requires > y -bytes to be represented properly, some bits may be lost.
+//
+// For (1), let's assume y = 8, then, res = [0, 0, 0, 0, x0, x1, x2, x3]
+// For (2), let's assume y = 3, then, res = [x1, x2, x3]
+//
+// Note, x is a 4 -byte word such that its bytes are interpreted in big-endian order and are indexed from 0 to 3.
+// Least significant byte is x0, while x3 is the most significant byte.
 //
 // See section 2.4 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
@@ -201,12 +206,16 @@ to_byte(const uint32_t x)
     constexpr size_t start_at = y - sizeof(x);
     to_be_bytes(x, _res.template subspan<start_at, sizeof(x)>());
   } else {
+    uint32_t word = x;
     if constexpr (std::endian::native == std::endian::little) {
-      const uint32_t swapped = bswap(x);
-      std::memcpy(_res.data(), &swapped, _res.size());
-    } else {
-      std::memcpy(_res.data(), &x, _res.size());
+      word = bswap(word);
     }
+
+    constexpr size_t off = sizeof(word) - y;
+    const auto _word = std::span<const uint8_t, sizeof(word)>(reinterpret_cast<const uint8_t*>(&word), sizeof(word));
+    const auto __word = _word.subspan<off, y>();
+
+    std::memcpy(_res.data(), __word.data(), __word.size());
   }
 
   return res;
