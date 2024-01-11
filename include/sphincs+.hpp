@@ -70,9 +70,9 @@ sign(std::span<const uint8_t> msg,
      std::span<uint8_t, sphincs_plus_utils::get_sphincs_sig_len<n, h, d, a, k, w>()> sig)
   requires(sphincs_plus_params::check_sign_verify_params<n, h, d, a, k, w, v>())
 {
-  constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
-  constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
-  constexpr size_t ileaf_len = static_cast<size_t>(((h / d) + 7) >> 3);
+  constexpr size_t md_len = static_cast<size_t>((k * a + 7) / 8);
+  constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) / 8);
+  constexpr size_t ileaf_len = static_cast<size_t>(((h / d) + 7) / 8);
   constexpr size_t m = md_len + itree_len + ileaf_len;
 
   constexpr size_t fors_sl = sphincs_plus_utils::compute_fors_sig_len<n, a, k>();
@@ -148,9 +148,9 @@ verify(std::span<const uint8_t> msg,
        std::span<const uint8_t, sphincs_plus_utils::get_sphincs_pkey_len<n>()> pkey)
   requires(sphincs_plus_params::check_sign_verify_params<n, h, d, a, k, w, v>())
 {
-  constexpr size_t md_len = static_cast<size_t>((k * a + 7) >> 3);
-  constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) >> 3);
-  constexpr size_t ileaf_len = static_cast<size_t>(((h / d) + 7) >> 3);
+  constexpr size_t md_len = static_cast<size_t>((k * a + 7) / 8);
+  constexpr size_t itree_len = static_cast<size_t>((h - (h / d) + 7) / 8);
+  constexpr size_t ileaf_len = static_cast<size_t>(((h / d) + 7) / 8);
   constexpr size_t m = md_len + itree_len + ileaf_len;
 
   constexpr size_t fors_sl = sphincs_plus_utils::compute_fors_sig_len<n, a, k>();
