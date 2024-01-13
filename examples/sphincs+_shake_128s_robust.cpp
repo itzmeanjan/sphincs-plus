@@ -22,7 +22,7 @@ to_hex(std::span<const uint8_t> bytes)
 
 // Compile it with
 //
-// g++ -std=c++20 -Wall -O3 -march=native -I include -I sha3/include sphincs+_shake_128s_robust.cpp
+// g++ -std=c++20 -Wall -Wextra -pedantic -O3 -march=native -I include -I sha3/include sphincs+_shake_128s_robust.cpp
 int
 main()
 {
@@ -40,7 +40,10 @@ main()
   auto _sk_seed = std::span<uint8_t, sphincs_plus_128s_robust::n>(sk_seed);
   auto _sk_prf = std::span<uint8_t, sphincs_plus_128s_robust::n>(sk_prf);
   auto _pk_seed = std::span<uint8_t, sphincs_plus_128s_robust::n>(pk_seed);
+  auto _pkey = std::span<uint8_t, sphincs_plus_128s_robust::PubKeyLen>(pkey);
+  auto _skey = std::span<uint8_t, sphincs_plus_128s_robust::SecKeyLen>(skey);
   auto _msg = std::span(msg);
+  auto _sig = std::span<uint8_t, sphincs_plus_128s_robust::SigLen>(sig);
 
   prng::prng_t prng;
 
@@ -50,19 +53,19 @@ main()
   prng.read(_msg);
 
   // step 1: generate random keypair
-  sphincs_plus_128s_robust::keygen(_sk_seed.data(), _sk_prf.data(), _pk_seed.data(), skey.data(), pkey.data());
+  sphincs_plus_128s_robust::keygen(_sk_seed, _sk_prf, _pk_seed, _skey, _pkey);
   // step 2: sign N(>0) -bytes message, using secret key
   //
-  // In case of randomized message signing, `rand_bytes` must be pointing to n -bytes random seed, otherwise it can safely be passed as nullptr.
-  sphincs_plus_128s_robust::sign(_msg.data(), mlen, skey.data(), nullptr, sig.data());
+  // In case of randomized message signing, `rand_bytes` must be pointing to n -bytes random seed, otherwise it can safely be passed as empty span i.e. {}.
+  sphincs_plus_128s_robust::sign(_msg, _skey, {}, _sig);
   // step 3: verify signature, using public key
-  const bool flag = sphincs_plus_128s_robust::verify(_msg.data(), mlen, sig.data(), pkey.data());
+  const bool flag = sphincs_plus_128s_robust::verify(_msg, _sig, _pkey);
 
   std::cout << "SPHINCS+-SHAKE-128s-robust @ NIST Security Level 1\n";
-  std::cout << "Secret Key   : " << to_hex(skey) << "\n";
-  std::cout << "Public Key   : " << to_hex(pkey) << "\n";
-  std::cout << "Message      : " << to_hex(msg) << "\n";
-  std::cout << "Signature    : " << to_hex(sig) << "\n";
+  std::cout << "Secret Key   : " << to_hex(_skey) << "\n";
+  std::cout << "Public Key   : " << to_hex(_pkey) << "\n";
+  std::cout << "Message      : " << to_hex(_msg) << "\n";
+  std::cout << "Signature    : " << to_hex(_sig) << "\n";
   std::cout << "Verified      : " << std::boolalpha << flag << "\n";
 
   // ensure that SPHINCS+ keygen -> sign -> verify works as expected !
