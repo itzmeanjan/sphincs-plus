@@ -1,5 +1,7 @@
+#include "prng.hpp"
 #include "sphincs+.hpp"
 #include <gtest/gtest.h>
+#include <vector>
 
 // Test correctness of SPHINCS+ implementation, using
 //
@@ -17,39 +19,38 @@ test_sphincs_plus(const size_t mlen)
   constexpr size_t sklen = utils::get_sphincs_skey_len<n>();
   constexpr size_t siglen = utils::get_sphincs_sig_len<n, h, d, a, k, w>();
 
-  // acquire memory resources
-  uint8_t* sk_seed = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* sk_prf = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* pk_seed = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* pkey = static_cast<uint8_t*>(std::malloc(pklen));
-  uint8_t* skey = static_cast<uint8_t*>(std::malloc(sklen));
-  uint8_t* msg = static_cast<uint8_t*>(std::malloc(mlen));
-  uint8_t* rand_bytes = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* sig = static_cast<uint8_t*>(std::malloc(siglen));
+  std::vector<uint8_t> sk_seed(n, 0);
+  std::vector<uint8_t> sk_prf(n, 0);
+  std::vector<uint8_t> pk_seed(n, 0);
+  std::vector<uint8_t> pkey(pklen, 0);
+  std::vector<uint8_t> skey(sklen, 0);
+  std::vector<uint8_t> msg(mlen, 0);
+  std::vector<uint8_t> rand_bytes(n, 0);
+  std::vector<uint8_t> sig(siglen, 0);
 
-  sphincs_plus_utils::random_data<uint8_t>(sk_seed, n);
-  sphincs_plus_utils::random_data<uint8_t>(sk_prf, n);
-  sphincs_plus_utils::random_data<uint8_t>(pk_seed, n);
-  sphincs_plus_utils::random_data<uint8_t>(msg, mlen);
-  sphincs_plus_utils::random_data<uint8_t>(rand_bytes, n);
+  auto _sk_seed = std::span<uint8_t, n>(sk_seed);
+  auto _sk_prf = std::span<uint8_t, n>(sk_prf);
+  auto _pk_seed = std::span<uint8_t, n>(pk_seed);
+  auto _pkey = std::span<uint8_t, pklen>(pkey);
+  auto _skey = std::span<uint8_t, sklen>(skey);
+  auto _msg = std::span<uint8_t>(msg);
+  auto _rand_bytes = std::span<uint8_t, n>(rand_bytes);
+  auto _sig = std::span<uint8_t, siglen>(sig);
 
-  sphincs_plus::keygen<n, h, d, w, v>(sk_seed, sk_prf, pk_seed, skey, pkey);
+  prng::prng_t prng;
+  prng.read(_sk_seed);
+  prng.read(_sk_prf);
+  prng.read(_pk_seed);
+  prng.read(_msg);
+  prng.read(_rand_bytes);
+
+  sphincs_plus::keygen<n, h, d, w, v>(_sk_seed, _sk_prf, _pk_seed, _skey, _pkey);
   if constexpr (randomize) {
-    sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, rand_bytes, sig);
+    sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(_msg, _skey, _rand_bytes, _sig);
   } else {
-    sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, nullptr, sig);
+    sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(_msg, _skey, {}, _sig);
   }
-  const bool flag = sphincs_plus::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
-
-  // release memory resources
-  std::free(sk_seed);
-  std::free(sk_prf);
-  std::free(pk_seed);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(rand_bytes);
-  std::free(sig);
+  const bool flag = sphincs_plus::verify<n, h, d, a, k, w, v>(_msg, _sig, _pkey);
 
   EXPECT_TRUE(flag);
 }

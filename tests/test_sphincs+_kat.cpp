@@ -27,6 +27,7 @@ test_sphincs_plus_kat(const std::string kat_file)
       auto sk_seed1 = std::string_view(sk_seed0);
       auto sk_seed2 = sk_seed1.substr(sk_seed1.find("="sv) + 2, sk_seed1.size());
       auto sk_seed = sphincs_plus_utils::from_hex(sk_seed2);
+      auto _sk_seed = std::span<uint8_t, n>(sk_seed);
 
       std::string sk_prf0;
       std::getline(file, sk_prf0);
@@ -34,6 +35,7 @@ test_sphincs_plus_kat(const std::string kat_file)
       auto sk_prf1 = std::string_view(sk_prf0);
       auto sk_prf2 = sk_prf1.substr(sk_prf1.find("="sv) + 2, sk_prf1.size());
       auto sk_prf = sphincs_plus_utils::from_hex(sk_prf2);
+      auto _sk_prf = std::span<uint8_t, n>(sk_prf);
 
       std::string pk_seed0;
       std::getline(file, pk_seed0);
@@ -41,6 +43,7 @@ test_sphincs_plus_kat(const std::string kat_file)
       auto pk_seed1 = std::string_view(pk_seed0);
       auto pk_seed2 = pk_seed1.substr(pk_seed1.find("="sv) + 2, pk_seed1.size());
       auto pk_seed = sphincs_plus_utils::from_hex(pk_seed2);
+      auto _pk_seed = std::span<uint8_t, n>(pk_seed);
 
       std::string pk_root0;
       std::getline(file, pk_root0);
@@ -63,6 +66,7 @@ test_sphincs_plus_kat(const std::string kat_file)
       auto msg1 = std::string_view(msg0);
       auto msg2 = msg1.substr(msg1.find("="sv) + 2, msg1.size());
       auto msg = sphincs_plus_utils::from_hex(msg2);
+      auto _msg = std::span<uint8_t>(msg);
 
       std::string opt0;
       std::getline(file, opt0);
@@ -70,6 +74,7 @@ test_sphincs_plus_kat(const std::string kat_file)
       auto opt1 = std::string_view(opt0);
       auto opt2 = opt1.substr(opt1.find("="sv) + 2, opt1.size());
       auto opt = sphincs_plus_utils::from_hex(opt2);
+      auto _opt = std::span<uint8_t, n>(opt);
 
       std::string sig0;
       std::getline(file, sig0);
@@ -89,15 +94,20 @@ test_sphincs_plus_kat(const std::string kat_file)
       EXPECT_EQ(expected_pklen, computed_pklen);
       EXPECT_EQ(expected_sklen, computed_sklen);
       EXPECT_EQ(expected_siglen, computed_siglen);
+      EXPECT_EQ(msg.size(), mlen);
 
       std::vector<uint8_t> pkey(computed_pklen, 0);
       std::vector<uint8_t> skey(computed_sklen, 0);
       std::vector<uint8_t> computed_sig(computed_siglen, 0);
 
+      auto _pkey = std::span<uint8_t, expected_pklen>(pkey);
+      auto _skey = std::span<uint8_t, expected_sklen>(skey);
+      auto _computed_sig = std::span<uint8_t, expected_siglen>(computed_sig);
+
       // Keygen -> (randomized) Sign -> Verify
-      sphincs_plus::keygen<n, h, d, w, v>(sk_seed.data(), sk_prf.data(), pk_seed.data(), skey.data(), pkey.data());
-      sphincs_plus::sign<n, h, d, a, k, w, v, true>(msg.data(), mlen, skey.data(), opt.data(), computed_sig.data());
-      const auto flag = sphincs_plus::verify<n, h, d, a, k, w, v>(msg.data(), mlen, computed_sig.data(), pkey.data());
+      sphincs_plus::keygen<n, h, d, w, v>(_sk_seed, _sk_prf, _pk_seed, _skey, _pkey);
+      sphincs_plus::sign<n, h, d, a, k, w, v, true>(_msg, _skey, _opt, _computed_sig);
+      const auto flag = sphincs_plus::verify<n, h, d, a, k, w, v>(_msg, _computed_sig, _pkey);
 
       // Check if computed public key, secret key and signature matches expected ones, from KAT file.
       EXPECT_EQ(std::memcmp(pk_seed.data(), pkey.data(), pk_seed.size()), 0);
@@ -105,7 +115,7 @@ test_sphincs_plus_kat(const std::string kat_file)
       EXPECT_EQ(std::memcmp(sk_seed.data(), skey.data(), sk_seed.size()), 0);
       EXPECT_EQ(std::memcmp(sk_prf.data(), skey.data() + sk_seed.size(), sk_prf.size()), 0);
       EXPECT_EQ(std::memcmp(pkey.data(), skey.data() + sk_seed.size() + sk_prf.size(), computed_pklen), 0);
-      EXPECT_EQ(std::memcmp(sig.data(), computed_sig.data(), computed_siglen), 0);
+      EXPECT_EQ(sig, computed_sig);
       EXPECT_TRUE(flag);
 
       std::string empty_line;
