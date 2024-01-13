@@ -1,5 +1,6 @@
 #pragma once
 #include "hashing.hpp"
+#include "params.hpp"
 #include <array>
 #include <bit>
 #include <cassert>
@@ -7,75 +8,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <iomanip>
-#include <random>
-#include <sstream>
+#include <span>
 #include <type_traits>
 
 // Utility functions for SPHINCS+
 namespace sphincs_plus_utils {
-
-// Compile-time check to ensure that SPHINCS+ key generation function is only
-// invoked with parameter sets suggested in table 3 of the specification
-// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<size_t n, uint32_t h, uint32_t d, size_t w, sphincs_plus_hashing::variant v>
-static inline constexpr bool
-check_keygen_params()
-{
-  constexpr bool flg0 = w == 16;
-  constexpr bool flg1 = (v == sphincs_plus_hashing::variant::robust) | (v == sphincs_plus_hashing::variant::simple);
-
-  constexpr bool flg2 = (n == 16) & (h == 63) & (d == 7);
-  constexpr bool flg3 = (n == 16) & (h == 66) & (d == 22);
-  constexpr bool flg4 = (n == 24) & (h == 63) & (d == 7);
-  constexpr bool flg5 = (n == 24) & (h == 66) & (d == 22);
-  constexpr bool flg6 = (n == 32) & (h == 64) & (d == 8);
-  constexpr bool flg7 = (n == 32) & (h == 68) & (d == 17);
-
-  return (flg2 | flg3 | flg4 | flg5 | flg6 | flg7) & flg0 & flg1;
-}
-
-// Compile-time check to ensure that SPHINCS+ sign/ verify function is only
-// invoked with parameter sets suggested in table 3 of the specification
-// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<size_t n, uint32_t h, uint32_t d, uint32_t a, uint32_t k, size_t w, sphincs_plus_hashing::variant v>
-static inline constexpr bool
-check_sign_verify_params()
-{
-  constexpr bool flg0 = w == 16;
-  constexpr bool flg1 = (v == sphincs_plus_hashing::variant::robust) || (v == sphincs_plus_hashing::variant::simple);
-
-  const bool flg2 = (n == 16) & (h == 63) & (d == 7) & (a == 12) & (k == 14);
-  const bool flg3 = (n == 16) & (h == 66) & (d == 22) & (a == 6) & (k == 33);
-  const bool flg4 = (n == 24) & (h == 63) & (d == 7) & (a == 14) & (k == 17);
-  const bool flg5 = (n == 24) & (h == 66) & (d == 22) & (a == 8) & (k == 33);
-  const bool flg6 = (n == 32) & (h == 64) & (d == 8) & (a == 14) & (k == 22);
-  const bool flg7 = (n == 32) & (h == 68) & (d == 17) & (a == 9) & (k == 35);
-
-  return (flg2 | flg3 | flg4 | flg5 | flg6 | flg7) & flg0 & flg1;
-}
-
-// Compile-time check to ensure that HyperTree's total height ( say h ) and
-// number of layers ( say d ) are conformant so that we can use 64 -bit unsigned
-// integer for indexing tree.
-//
-// Read more about this constraint in section 4.2.4 of the specification
-// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-static inline constexpr bool
-check_ht_height_and_layer(const uint32_t h, const uint32_t d)
-{
-  return (h - (h / d)) <= 64u;
-}
-
-// Compile-time check to ensure that `w` parameter takes only allowed values.
-//
-// See Winternitz Parameter point in section 3.1 of
-// https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-static inline constexpr bool
-check_w(const size_t w)
-{
-  return (w == 4) || (w == 16) || (w == 256);
-}
 
 // Compile-time compute logarithm base 2 of Winternitz parameter `w` for WOTS+
 //
@@ -84,7 +21,7 @@ check_w(const size_t w)
 template<size_t w>
 static inline constexpr size_t
 log2()
-  requires(check_w(w))
+  requires(sphincs_plus_params::check_w(w))
 {
   return std::bit_width(w) - 1;
 }
@@ -188,24 +125,45 @@ get_sphincs_sig_len()
   return n + compute_fors_sig_len<n, a, k>() + compute_ht_sig_len<h, d, n, w>();
 }
 
-// Given a 32 -bit word, this routine extracts out each byte from that word and
-// places them in a big endian byte array.
-static inline void
-to_be_bytes(const uint32_t word, uint8_t* const bytes)
+// Given a 32 -bit unsigned integer word, this routine swaps byte order and returns byte swapped 32 -bit word.
+//
+// Collects inspiration from https://github.com/itzmeanjan/ascon/blob/f31d9085c096021cc4da6191398d2bf2d5805be0/include/utils.hpp#L17-L47.
+static inline constexpr uint32_t
+bswap(const uint32_t a)
 {
-  bytes[0] = static_cast<uint8_t>(word >> 24);
-  bytes[1] = static_cast<uint8_t>(word >> 16);
-  bytes[2] = static_cast<uint8_t>(word >> 8);
-  bytes[3] = static_cast<uint8_t>(word >> 0);
+#if defined __GNUG__ || defined __MINGW64__
+  return __builtin_bswap32(a);
+#elif defined _MSC_VER
+  return _byteswap_uint32(a);
+#else
+  return ((a & 0x000000ffu) << 24) | ((a & 0x0000ff00u) << 8) | ((a & 0x00ff0000u) >> 8) | ((a & 0xff000000u) >> 24);
+#endif
 }
 
-// Given a byte array of length 4, this routine converts it to a big endian 32
-// -bit word.
-static inline uint32_t
-from_be_bytes(const uint8_t* const bytes)
+// Given a 32 -bit word, this routine extracts out each byte from that word and places them in a big endian byte array.
+static inline void
+to_be_bytes(const uint32_t word, std::span<uint8_t, sizeof(word)> bytes)
 {
-  return (static_cast<uint32_t>(bytes[0]) << 24) | (static_cast<uint32_t>(bytes[1]) << 16) | (static_cast<uint32_t>(bytes[2]) << 8) |
-         (static_cast<uint32_t>(bytes[3]) << 0);
+  if constexpr (std::endian::native == std::endian::little) {
+    const uint32_t swapped = bswap(word);
+    std::memcpy(bytes.data(), &swapped, sizeof(swapped));
+  } else {
+    std::memcpy(bytes.data(), &word, sizeof(word));
+  }
+}
+
+// Given a byte array of length 4, this routine converts it to a big endian 32 -bit word.
+static inline uint32_t
+from_be_bytes(std::span<const uint8_t, 4> bytes)
+{
+  uint32_t res = 0;
+  std::memcpy(&res, bytes.data(), bytes.size());
+
+  if constexpr (std::endian::native == std::endian::little) {
+    res = bswap(res);
+  }
+
+  return res;
 }
 
 // Compile-time check to ensure that output length of base-w string is within
@@ -222,32 +180,42 @@ check_olen()
   return olen <= max;
 }
 
-// Given an unsigned integer ( whose type can be templated ), this routine
-// returns a big endian byte array of length y.
+// Given an unsigned 32 -bit integer x, this routine returns a big endian byte array of length y, representing x.
 //
 // Two edge cases, to keep in mind,
 //
-// - If y > sizeof(x), then extra bytes will be zerod.
-// - If y < sizeof(x) and x requires > y -bytes to be represented properly some
-// bits may be lost.
+// - (1) If y > sizeof(x), then extra bytes will be zeroed.
+// - (2) If y < sizeof(x) and x requires > y -bytes to be represented properly, some bits may be lost.
+//
+// For (1), let's assume y = 8, then, res = [0, 0, 0, 0, x0, x1, x2, x3]
+// For (2), let's assume y = 3, then, res = [x1, x2, x3]
+//
+// Note, x is a 4 -byte word such that its bytes are interpreted in big-endian order and are indexed from 0 to 3.
+// Least significant byte is x0, while x3 is the most significant byte.
 //
 // See section 2.4 of SPHINCS+ specification
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
-template<typename T, size_t y>
+template<size_t y>
 static inline std::array<uint8_t, y>
-to_byte(const T x)
-  requires(std::is_unsigned_v<T>)
+to_byte(const uint32_t x)
 {
-  constexpr size_t blen = sizeof(T);
-  constexpr bool flg = y > blen;
-  constexpr size_t br[]{ 0, y - blen };
-  constexpr size_t start = br[flg];
-
   std::array<uint8_t, y> res{};
+  auto _res = std::span(res);
 
-  for (size_t i = start; i < y; i++) {
-    const size_t shr = ((y - 1) - i) << 3;
-    res[i] = static_cast<uint8_t>(x >> shr);
+  if constexpr (y > sizeof(x)) {
+    constexpr size_t start_at = y - sizeof(x);
+    to_be_bytes(x, _res.template subspan<start_at, sizeof(x)>());
+  } else {
+    uint32_t word = x;
+    if constexpr (std::endian::native == std::endian::little) {
+      word = bswap(word);
+    }
+
+    constexpr size_t off = sizeof(word) - y;
+    const auto _word = std::span<const uint8_t, sizeof(word)>(reinterpret_cast<const uint8_t*>(&word), sizeof(word));
+    const auto __word = _word.subspan<off, y>();
+
+    std::memcpy(_res.data(), __word.data(), __word.size());
   }
 
   return res;
@@ -260,7 +228,7 @@ to_byte(const T x)
 // https://sphincs.org/data/sphincs+-r3.1-specification.pdf
 template<size_t w, size_t ilen, size_t olen>
 static inline void
-base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
+base_w(std::span<const uint8_t, ilen> in, std::span<uint8_t, olen> out)
   requires(check_olen<w, ilen, olen>())
 {
   constexpr size_t lgw = log2<w>();
@@ -281,7 +249,7 @@ base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
       out[i] = (in[off] >> boff) & mask;
     }
   } else {
-    std::memcpy(out, in, olen);
+    std::copy(in.begin(), in.end(), out.begin());
   }
 }
 
@@ -292,17 +260,12 @@ base_w(const uint8_t* const __restrict in, uint8_t* const __restrict out)
 // contiguous bits are now interpreted as an 32 -bit unsigned integer
 // ∈ [0, t) | a <= 32 and t = 2^a
 static inline uint32_t
-extract_contiguous_bits_as_u32(const uint8_t* const __restrict msg, // byte array to extract bits from
-                               const uint32_t frm_idx,              // starting bit index
-                               const uint32_t to_idx                // ending bit index
+extract_contiguous_bits_as_u32(std::span<const uint8_t> msg, // byte array to extract bits from
+                               const uint32_t frm_idx,       // starting bit index
+                               const uint32_t to_idx         // ending bit index
 )
 {
   constexpr uint8_t mask = 0b1;
-
-  assert(to_idx > frm_idx);
-  const uint32_t bits = to_idx - frm_idx + 1u;
-  assert(bits <= 32u);
-
   uint32_t res = 0u;
 
   for (uint32_t i = frm_idx; i <= to_idx; i++) {
@@ -314,21 +277,6 @@ extract_contiguous_bits_as_u32(const uint8_t* const __restrict msg, // byte arra
   }
 
   return res;
-}
-
-// Given a bytearray of length N, this function converts it to human readable
-// hex string of length N << 1 | N >= 0
-static inline const std::string
-to_hex(const uint8_t* const bytes, const size_t len)
-{
-  std::stringstream ss;
-  ss << std::hex;
-
-  for (size_t i = 0; i < len; i++) {
-    ss << std::setw(2) << std::setfill('0') << static_cast<uint32_t>(bytes[i]);
-  }
-
-  return ss.str();
 }
 
 // Given a hex encoded string of length 2*L, this routine can be used for
@@ -353,21 +301,6 @@ from_hex(std::string_view hex)
   }
 
   return res;
-}
-
-// Generates N -many random values of type T | N >= 0
-template<typename T>
-static inline void
-random_data(T* const data, const size_t len)
-  requires(std::is_unsigned_v<T>)
-{
-  std::random_device rd;
-  std::mt19937_64 gen(rd());
-  std::uniform_int_distribution<T> dis;
-
-  for (size_t i = 0; i < len; i++) {
-    data[i] = dis(gen);
-  }
 }
 
 }

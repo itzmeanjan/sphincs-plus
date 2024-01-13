@@ -24,36 +24,26 @@ constexpr size_t SecKeyLen = sphincs_plus_utils::get_sphincs_skey_len<n>();
 constexpr size_t SigLen = sphincs_plus_utils::get_sphincs_sig_len<n, h, d, a, k, w>();
 
 inline void
-keygen(const uint8_t* const __restrict sk_seed, // n -bytes secret key seed
-       const uint8_t* const __restrict sk_prf,  // n -bytes secret key PRF
-       const uint8_t* const __restrict pk_seed, // n -bytes public key seed
-       uint8_t* const __restrict skey,          // 4*n -bytes SPHINCS+ secret key
-       uint8_t* const __restrict pkey           // 2*n -bytes SPHINCS+ public key
-)
+keygen(std::span<const uint8_t, n> sk_seed,
+       std::span<const uint8_t, n> sk_prf,
+       std::span<const uint8_t, n> pk_seed,
+       std::span<uint8_t, SecKeyLen> skey,
+       std::span<uint8_t, PubKeyLen> pkey)
 {
   sphincs_plus::keygen<n, h, d, w, v>(sk_seed, sk_prf, pk_seed, skey, pkey);
 }
 
 template<bool randomize = false>
 inline void
-sign(const uint8_t* const __restrict msg,        // message to be signed
-     const size_t mlen,                          // byte length of message
-     const uint8_t* const __restrict skey,       // SPHINCS+ secret key of 4*n -bytes
-     const uint8_t* const __restrict rand_bytes, // Optional n -bytes randomness
-     uint8_t* const __restrict sig               // SPHINCS+ signature
-)
+sign(std::span<const uint8_t> msg, std::span<const uint8_t, SecKeyLen> skey, std::span<const uint8_t, n * randomize> rand_bytes, std::span<uint8_t, SigLen> sig)
 {
-  sphincs_plus::sign<n, h, d, a, k, w, v>(msg, mlen, skey, rand_bytes, sig);
+  sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(msg, skey, rand_bytes, sig);
 }
 
 inline bool
-verify(const uint8_t* const __restrict msg, // message which was signed
-       const size_t mlen,                   // byte length of message
-       const uint8_t* const __restrict sig, // SPHINCS+ signature
-       const uint8_t* const __restrict pkey // SPHINCS+ public key of 2*n -bytes
-)
+verify(std::span<const uint8_t> msg, std::span<const uint8_t, SigLen> sig, std::span<const uint8_t, PubKeyLen> pkey)
 {
-  return sphincs_plus::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+  return sphincs_plus::verify<n, h, d, a, k, w, v>(msg, sig, pkey);
 }
 
 }

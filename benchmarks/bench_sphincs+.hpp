@@ -1,6 +1,7 @@
 #pragma once
+#include "prng.hpp"
 #include "sphincs+.hpp"
-#include "x86_64_cpu_cycles.hpp"
+#include "x86_64_cpu_ticks.hpp"
 #include <benchmark/benchmark.h>
 #include <cassert>
 
@@ -12,56 +13,56 @@ template<const size_t n, const uint32_t h, const uint32_t d, const size_t w, con
 static inline void
 keygen(benchmark::State& state)
 {
-  namespace utils = sphincs_plus_utils;
-  constexpr size_t pklen = utils::get_sphincs_pkey_len<n>();
-  constexpr size_t sklen = utils::get_sphincs_skey_len<n>();
+  constexpr size_t pklen = sphincs_plus_utils::get_sphincs_pkey_len<n>();
+  constexpr size_t sklen = sphincs_plus_utils::get_sphincs_skey_len<n>();
 
-  uint8_t* sk_seed = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* sk_prf = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* pk_seed = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* pkey = static_cast<uint8_t*>(std::malloc(pklen));
-  uint8_t* skey = static_cast<uint8_t*>(std::malloc(sklen));
+  std::vector<uint8_t> sk_seed(n, 0);
+  std::vector<uint8_t> sk_prf(n, 0);
+  std::vector<uint8_t> pk_seed(n, 0);
+  std::vector<uint8_t> pkey(pklen, 0);
+  std::vector<uint8_t> skey(sklen, 0);
 
-  sphincs_plus_utils::random_data<uint8_t>(sk_seed, n);
-  sphincs_plus_utils::random_data<uint8_t>(sk_prf, n);
-  sphincs_plus_utils::random_data<uint8_t>(pk_seed, n);
+  auto _sk_seed = std::span<uint8_t, n>(sk_seed);
+  auto _sk_prf = std::span<uint8_t, n>(sk_prf);
+  auto _pk_seed = std::span<uint8_t, n>(pk_seed);
+  auto _pkey = std::span<uint8_t, pklen>(pkey);
+  auto _skey = std::span<uint8_t, sklen>(skey);
+
+  prng::prng_t prng;
+  prng.read(_sk_seed);
+  prng.read(_sk_prf);
+  prng.read(_pk_seed);
 
 #ifdef __x86_64__
-  uint64_t total_cycles = 0ul;
+  uint64_t total_ticks = 0ul;
 #endif
 
   for (auto _ : state) {
 #ifdef __x86_64__
-    const uint64_t start = cpu_cycles();
+    const uint64_t start = cpu_ticks();
 #endif
 
-    sphincs_plus::keygen<n, h, d, w, v>(sk_seed, sk_prf, pk_seed, skey, pkey);
+    sphincs_plus::keygen<n, h, d, w, v>(_sk_seed, _sk_prf, _pk_seed, _skey, _pkey);
 
-    benchmark::DoNotOptimize(sk_seed);
-    benchmark::DoNotOptimize(sk_prf);
-    benchmark::DoNotOptimize(pk_seed);
-    benchmark::DoNotOptimize(skey);
-    benchmark::DoNotOptimize(pkey);
+    benchmark::DoNotOptimize(_sk_seed);
+    benchmark::DoNotOptimize(_sk_prf);
+    benchmark::DoNotOptimize(_pk_seed);
+    benchmark::DoNotOptimize(_skey);
+    benchmark::DoNotOptimize(_pkey);
     benchmark::ClobberMemory();
 
 #ifdef __x86_64__
-    const uint64_t end = cpu_cycles();
-    total_cycles += (end - start);
+    const uint64_t end = cpu_ticks();
+    total_ticks += (end - start);
 #endif
   }
 
   state.SetItemsProcessed(state.iterations());
 
 #ifdef __x86_64__
-  total_cycles /= static_cast<uint64_t>(state.iterations());
-  state.counters["average_cpu_cycles"] = static_cast<double>(total_cycles);
+  total_ticks /= static_cast<uint64_t>(state.iterations());
+  state.counters["rdtsc"] = static_cast<double>(total_ticks);
 #endif
-
-  std::free(sk_seed);
-  std::free(sk_prf);
-  std::free(pk_seed);
-  std::free(pkey);
-  std::free(skey);
 }
 
 // Benchmark SPHINCS+ signing algorithm
@@ -76,74 +77,73 @@ template<const size_t n,
 static inline void
 sign(benchmark::State& state)
 {
-  namespace utils = sphincs_plus_utils;
-  constexpr size_t pklen = utils::get_sphincs_pkey_len<n>();
-  constexpr size_t sklen = utils::get_sphincs_skey_len<n>();
-  constexpr size_t siglen = utils::get_sphincs_sig_len<n, h, d, a, k, w>();
-  constexpr size_t mlen = 32;
+  constexpr size_t pklen = sphincs_plus_utils::get_sphincs_pkey_len<n>();
+  constexpr size_t sklen = sphincs_plus_utils::get_sphincs_skey_len<n>();
+  constexpr size_t siglen = sphincs_plus_utils::get_sphincs_sig_len<n, h, d, a, k, w>();
+  const size_t mlen = state.range();
 
-  uint8_t* sk_seed = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* sk_prf = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* pk_seed = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* pkey = static_cast<uint8_t*>(std::malloc(pklen));
-  uint8_t* skey = static_cast<uint8_t*>(std::malloc(sklen));
-  uint8_t* msg = static_cast<uint8_t*>(std::malloc(mlen));
-  uint8_t* rand_bytes = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* sig = static_cast<uint8_t*>(std::malloc(siglen));
+  std::vector<uint8_t> sk_seed(n, 0);
+  std::vector<uint8_t> sk_prf(n, 0);
+  std::vector<uint8_t> pk_seed(n, 0);
+  std::vector<uint8_t> pkey(pklen, 0);
+  std::vector<uint8_t> skey(sklen, 0);
+  std::vector<uint8_t> msg(mlen, 0);
+  std::vector<uint8_t> rand_bytes(n, 0);
+  std::vector<uint8_t> sig(siglen, 0);
 
-  sphincs_plus_utils::random_data<uint8_t>(sk_seed, n);
-  sphincs_plus_utils::random_data<uint8_t>(sk_prf, n);
-  sphincs_plus_utils::random_data<uint8_t>(pk_seed, n);
+  auto _sk_seed = std::span<uint8_t, n>(sk_seed);
+  auto _sk_prf = std::span<uint8_t, n>(sk_prf);
+  auto _pk_seed = std::span<uint8_t, n>(pk_seed);
+  auto _pkey = std::span<uint8_t, pklen>(pkey);
+  auto _skey = std::span<uint8_t, sklen>(skey);
+  auto _msg = std::span(msg);
+  auto _rand_bytes = std::span<uint8_t, n>(rand_bytes);
+  auto _sig = std::span<uint8_t, siglen>(sig);
 
-  sphincs_plus::keygen<n, h, d, w, v>(sk_seed, sk_prf, pk_seed, skey, pkey);
+  prng::prng_t prng;
+  prng.read(_sk_seed);
+  prng.read(_sk_prf);
+  prng.read(_pk_seed);
+  prng.read(_msg);
+  prng.read(_rand_bytes);
 
-  sphincs_plus_utils::random_data<uint8_t>(msg, mlen);
-  sphincs_plus_utils::random_data<uint8_t>(rand_bytes, n);
+  sphincs_plus::keygen<n, h, d, w, v>(_sk_seed, _sk_prf, _pk_seed, _skey, _pkey);
 
 #ifdef __x86_64__
-  uint64_t total_cycles = 0ul;
+  uint64_t total_ticks = 0ul;
 #endif
 
   for (auto _ : state) {
 #ifdef __x86_64__
-    const uint64_t start = cpu_cycles();
+    const uint64_t start = cpu_ticks();
 #endif
 
     if constexpr (randomize) {
-      sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, rand_bytes, sig);
+      sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(_msg, _skey, _rand_bytes, _sig);
     } else {
-      sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, nullptr, sig);
+      sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(_msg, _skey, {}, _sig);
     }
 
-    benchmark::DoNotOptimize(msg);
-    benchmark::DoNotOptimize(skey);
+    benchmark::DoNotOptimize(_msg);
+    benchmark::DoNotOptimize(_skey);
     if constexpr (randomize) {
-      benchmark::DoNotOptimize(rand_bytes);
+      benchmark::DoNotOptimize(_rand_bytes);
     }
-    benchmark::DoNotOptimize(sig);
+    benchmark::DoNotOptimize(_sig);
     benchmark::ClobberMemory();
 
 #ifdef __x86_64__
-    const uint64_t end = cpu_cycles();
-    total_cycles += (end - start);
+    const uint64_t end = cpu_ticks();
+    total_ticks += (end - start);
 #endif
   }
 
   state.SetItemsProcessed(state.iterations());
 
 #ifdef __x86_64__
-  total_cycles /= static_cast<uint64_t>(state.iterations());
-  state.counters["average_cpu_cycles"] = static_cast<double>(total_cycles);
+  total_ticks /= static_cast<uint64_t>(state.iterations());
+  state.counters["rdtsc"] = static_cast<double>(total_ticks);
 #endif
-
-  std::free(sk_seed);
-  std::free(sk_prf);
-  std::free(pk_seed);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(rand_bytes);
-  std::free(sig);
 }
 
 // Benchmark SPHINCS+ signature verification algorithm
@@ -158,55 +158,65 @@ template<const size_t n,
 static inline void
 verify(benchmark::State& state)
 {
-  namespace utils = sphincs_plus_utils;
-  constexpr size_t pklen = utils::get_sphincs_pkey_len<n>();
-  constexpr size_t sklen = utils::get_sphincs_skey_len<n>();
-  constexpr size_t siglen = utils::get_sphincs_sig_len<n, h, d, a, k, w>();
-  constexpr size_t mlen = 32;
+  constexpr size_t pklen = sphincs_plus_utils::get_sphincs_pkey_len<n>();
+  constexpr size_t sklen = sphincs_plus_utils::get_sphincs_skey_len<n>();
+  constexpr size_t siglen = sphincs_plus_utils::get_sphincs_sig_len<n, h, d, a, k, w>();
+  const size_t mlen = state.range();
 
-  uint8_t* sk_seed = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* sk_prf = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* pk_seed = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* pkey = static_cast<uint8_t*>(std::malloc(pklen));
-  uint8_t* skey = static_cast<uint8_t*>(std::malloc(sklen));
-  uint8_t* msg = static_cast<uint8_t*>(std::malloc(mlen));
-  uint8_t* rand_bytes = static_cast<uint8_t*>(std::malloc(n));
-  uint8_t* sig = static_cast<uint8_t*>(std::malloc(siglen));
+  std::vector<uint8_t> sk_seed(n, 0);
+  std::vector<uint8_t> sk_prf(n, 0);
+  std::vector<uint8_t> pk_seed(n, 0);
+  std::vector<uint8_t> pkey(pklen, 0);
+  std::vector<uint8_t> skey(sklen, 0);
+  std::vector<uint8_t> msg(mlen, 0);
+  std::vector<uint8_t> rand_bytes(n, 0);
+  std::vector<uint8_t> sig(siglen, 0);
 
-  sphincs_plus_utils::random_data<uint8_t>(sk_seed, n);
-  sphincs_plus_utils::random_data<uint8_t>(sk_prf, n);
-  sphincs_plus_utils::random_data<uint8_t>(pk_seed, n);
-  sphincs_plus_utils::random_data<uint8_t>(msg, mlen);
-  sphincs_plus_utils::random_data<uint8_t>(rand_bytes, n);
+  auto _sk_seed = std::span<uint8_t, n>(sk_seed);
+  auto _sk_prf = std::span<uint8_t, n>(sk_prf);
+  auto _pk_seed = std::span<uint8_t, n>(pk_seed);
+  auto _pkey = std::span<uint8_t, pklen>(pkey);
+  auto _skey = std::span<uint8_t, sklen>(skey);
+  auto _msg = std::span(msg);
+  auto _rand_bytes = std::span<uint8_t, n>(rand_bytes);
+  auto _sig = std::span<uint8_t, siglen>(sig);
 
-  sphincs_plus::keygen<n, h, d, w, v>(sk_seed, sk_prf, pk_seed, skey, pkey);
+  prng::prng_t prng;
+  prng.read(_sk_seed);
+  prng.read(_sk_prf);
+  prng.read(_pk_seed);
+  prng.read(_msg);
+  prng.read(_rand_bytes);
+
+  sphincs_plus::keygen<n, h, d, w, v>(_sk_seed, _sk_prf, _pk_seed, _skey, _pkey);
+
   if constexpr (randomize) {
-    sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, rand_bytes, sig);
+    sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(_msg, _skey, _rand_bytes, _sig);
   } else {
-    sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(msg, mlen, skey, nullptr, sig);
+    sphincs_plus::sign<n, h, d, a, k, w, v, randomize>(_msg, _skey, {}, _sig);
   }
 
 #ifdef __x86_64__
-  uint64_t total_cycles = 0ul;
+  uint64_t total_ticks = 0ul;
 #endif
 
   bool flag = true;
   for (auto _ : state) {
 #ifdef __x86_64__
-    const uint64_t start = cpu_cycles();
+    const uint64_t start = cpu_ticks();
 #endif
 
-    flag &= sphincs_plus::verify<n, h, d, a, k, w, v>(msg, mlen, sig, pkey);
+    flag &= sphincs_plus::verify<n, h, d, a, k, w, v>(_msg, _sig, _pkey);
 
     benchmark::DoNotOptimize(flag);
-    benchmark::DoNotOptimize(msg);
-    benchmark::DoNotOptimize(sig);
-    benchmark::DoNotOptimize(pkey);
+    benchmark::DoNotOptimize(_msg);
+    benchmark::DoNotOptimize(_sig);
+    benchmark::DoNotOptimize(_pkey);
     benchmark::ClobberMemory();
 
 #ifdef __x86_64__
-    const uint64_t end = cpu_cycles();
-    total_cycles += (end - start);
+    const uint64_t end = cpu_ticks();
+    total_ticks += (end - start);
 #endif
   }
 
@@ -214,18 +224,9 @@ verify(benchmark::State& state)
   state.SetItemsProcessed(state.iterations());
 
 #ifdef __x86_64__
-  total_cycles /= static_cast<uint64_t>(state.iterations());
-  state.counters["average_cpu_cycles"] = static_cast<double>(total_cycles);
+  total_ticks /= static_cast<uint64_t>(state.iterations());
+  state.counters["rdtsc"] = static_cast<double>(total_ticks);
 #endif
-
-  std::free(sk_seed);
-  std::free(sk_prf);
-  std::free(pk_seed);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(rand_bytes);
-  std::free(sig);
 }
 
 }

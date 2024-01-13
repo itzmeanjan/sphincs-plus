@@ -1,5 +1,7 @@
+#include "prng.hpp"
 #include "wots.hpp"
 #include <gtest/gtest.h>
+#include <vector>
 
 // Test correctness of WOTS+ implementation, in standalone mode, using
 //
@@ -17,38 +19,35 @@ test_wots_plus()
   constexpr size_t len = sphincs_plus_utils::compute_wots_len<n, w>();
 
   // Input
-  uint8_t* sk_seed = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n));
-  uint8_t* pk_seed = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n));
+  std::vector<uint8_t> sk_seed(n, 0);
+  std::vector<uint8_t> pk_seed(n, 0);
   sphincs_plus_adrs::wots_hash_t adrs{};
-  uint8_t* msg = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n));
+  std::vector<uint8_t> msg(n, 0);
+
+  auto _sk_seed = std::span<uint8_t, n>(sk_seed);
+  auto _pk_seed = std::span<uint8_t, n>(pk_seed);
+  auto _msg = std::span<uint8_t, n>(msg);
 
   // Output
-  uint8_t* pkey0 = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n));
-  uint8_t* pkey1 = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n));
-  uint8_t* sig = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n * len));
+  std::vector<uint8_t> pkey0(n, 0);
+  std::vector<uint8_t> pkey1(n, 0);
+  std::vector<uint8_t> sig(n * len, 0);
 
-  sphincs_plus_utils::random_data<uint8_t>(sk_seed, n);
-  sphincs_plus_utils::random_data<uint8_t>(pk_seed, n);
-  sphincs_plus_utils::random_data<uint8_t>(adrs.data, 32);
-  sphincs_plus_utils::random_data<uint8_t>(msg, n);
+  auto _pkey0 = std::span<uint8_t, n>(pkey0);
+  auto _pkey1 = std::span<uint8_t, n>(pkey1);
+  auto _sig = std::span<uint8_t, n * len>(sig);
 
-  sphincs_plus_wots::pkgen<n, w, v>(sk_seed, pk_seed, adrs, pkey0);
-  sphincs_plus_wots::sign<n, w, v>(msg, sk_seed, pk_seed, adrs, sig);
-  sphincs_plus_wots::pk_from_sig<n, w, v>(sig, msg, pk_seed, adrs, pkey1);
+  prng::prng_t prng;
+  prng.read(_sk_seed);
+  prng.read(_pk_seed);
+  prng.read(adrs.data);
+  prng.read(_msg);
 
-  bool flag = false;
-  for (size_t i = 0; i < n; i++) {
-    flag |= static_cast<bool>(pkey0[i] ^ pkey1[i]);
-  }
+  sphincs_plus_wots::pkgen<n, w, v>(_sk_seed, _pk_seed, adrs, _pkey0);
+  sphincs_plus_wots::sign<n, w, v>(_msg, _sk_seed, _pk_seed, adrs, _sig);
+  sphincs_plus_wots::pk_from_sig<n, w, v>(_sig, _msg, _pk_seed, adrs, _pkey1);
 
-  std::free(sk_seed);
-  std::free(pk_seed);
-  std::free(pkey0);
-  std::free(pkey1);
-  std::free(msg);
-  std::free(sig);
-
-  EXPECT_FALSE(flag);
+  EXPECT_EQ(pkey0, pkey1);
 }
 
 TEST(SphincsPlus, WOTS_PlusNISTSecurityLevel1)

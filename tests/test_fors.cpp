@@ -1,5 +1,7 @@
 #include "fors.hpp"
+#include "prng.hpp"
 #include <gtest/gtest.h>
+#include <vector>
 
 // Test correctness of FORS implementation, in standalone mode, using
 //
@@ -16,37 +18,34 @@ test_fors()
   constexpr size_t sig_len = k * n * (a + 1); // FORS signature length
 
   // Input
-  uint8_t* sk_seed = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n));
-  uint8_t* pk_seed = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n));
+  std::vector<uint8_t> sk_seed(n, 0);
+  std::vector<uint8_t> pk_seed(n, 0);
   sphincs_plus_adrs::fors_tree_t adrs{};
-  uint8_t* msg = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * msg_len));
+  std::vector<uint8_t> msg(msg_len, 0);
+
+  auto _sk_seed = std::span<uint8_t, n>(sk_seed);
+  auto _pk_seed = std::span<uint8_t, n>(pk_seed);
+  auto _msg = std::span<uint8_t, msg_len>(msg);
 
   // Output
-  uint8_t* pkey0 = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n));
-  uint8_t* pkey1 = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * n));
-  uint8_t* sig = static_cast<uint8_t*>(std::malloc(sizeof(uint8_t) * sig_len));
+  std::vector<uint8_t> pkey0(n, 0);
+  std::vector<uint8_t> pkey1(n, 0);
+  std::vector<uint8_t> sig(sig_len, 0);
 
-  sphincs_plus_utils::random_data<uint8_t>(sk_seed, n);
-  sphincs_plus_utils::random_data<uint8_t>(pk_seed, n);
-  sphincs_plus_utils::random_data<uint8_t>(msg, msg_len);
+  auto _pkey0 = std::span<uint8_t, n>(pkey0);
+  auto _pkey1 = std::span<uint8_t, n>(pkey1);
+  auto _sig = std::span<uint8_t, sig_len>(sig);
 
-  sphincs_plus_fors::pkgen<n, a, k, v>(sk_seed, pk_seed, adrs, pkey0);
-  sphincs_plus_fors::sign<n, a, k, v>(msg, sk_seed, pk_seed, adrs, sig);
-  sphincs_plus_fors::pk_from_sig<n, a, k, v>(sig, msg, pk_seed, adrs, pkey1);
+  prng::prng_t prng;
+  prng.read(_sk_seed);
+  prng.read(_pk_seed);
+  prng.read(_msg);
 
-  bool flag = false;
-  for (size_t i = 0; i < n; i++) {
-    flag |= static_cast<bool>(pkey0[i] ^ pkey1[i]);
-  }
+  sphincs_plus_fors::pkgen<n, a, k, v>(_sk_seed, _pk_seed, adrs, _pkey0);
+  sphincs_plus_fors::sign<n, a, k, v>(_msg, _sk_seed, _pk_seed, adrs, _sig);
+  sphincs_plus_fors::pk_from_sig<n, a, k, v>(_sig, _msg, _pk_seed, adrs, _pkey1);
 
-  std::free(sk_seed);
-  std::free(pk_seed);
-  std::free(msg);
-  std::free(pkey0);
-  std::free(pkey1);
-  std::free(sig);
-
-  EXPECT_FALSE(flag);
+  EXPECT_EQ(pkey0, pkey1);
 }
 
 TEST(SphincsPlus, FORSNISTSecurityLevel1)

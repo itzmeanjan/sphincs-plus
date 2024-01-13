@@ -20,11 +20,13 @@ TEST_BINARY = $(BUILD_DIR)/test.out
 
 BENCHMARK_DIR = benchmarks
 BENCHMARK_SOURCES := $(wildcard $(BENCHMARK_DIR)/*.cpp)
+BENCHMARK_HEADERS := $(wildcard $(BENCHMARK_DIR)/*.hpp)
 BENCHMARK_OBJECTS := $(addprefix $(BUILD_DIR)/, $(notdir $(patsubst %.cpp,%.o,$(BENCHMARK_SOURCES))))
 BENCHMARK_LINK_FLAGS = -lbenchmark -lbenchmark_main -lpthread
 BENCHMARK_BINARY = $(BUILD_DIR)/bench.out
 PERF_LINK_FLAGS = -lbenchmark -lbenchmark_main -lpfm -lpthread
 PERF_BINARY = $(BUILD_DIR)/perf.out
+GTEST_PARALLEL = ./gtest-parallel/gtest-parallel
 
 all: test
 
@@ -34,14 +36,16 @@ $(BUILD_DIR):
 $(SHA3_INC_DIR):
 	git submodule update --init
 
+$(GTEST_PARALLEL): $(SHA3_INC_DIR)
+
 $(BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp $(BUILD_DIR) $(SHA3_INC_DIR)
 	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) -c $< -o $@
 
 $(TEST_BINARY): $(TEST_OBJECTS)
 	$(CXX) $(OPT_FLAGS) $(LINK_FLAGS) $^ $(TEST_LINK_FLAGS) -o $@
 
-test: $(TEST_BINARY)
-	./$< --gtest_shuffle --gtest_random_seed=0
+test: $(TEST_BINARY) $(GTEST_PARALLEL)
+	$(GTEST_PARALLEL) $< --print_test_times
 
 $(BUILD_DIR)/%.o: $(BENCHMARK_DIR)/%.cpp $(BUILD_DIR) $(SHA3_INC_DIR)
 	$(CXX) $(CXX_FLAGS) $(WARN_FLAGS) $(OPT_FLAGS) $(I_FLAGS) $(DEP_IFLAGS) -c $< -o $@
@@ -65,5 +69,5 @@ perf: $(PERF_BINARY)
 clean:
 	rm -rf $(BUILD_DIR)
 
-format: $(SPHINCS+_SOURCES) $(TEST_SOURCES) $(BENCHMARK_SOURCES)
+format: $(SPHINCS+_SOURCES) $(TEST_SOURCES) $(BENCHMARK_SOURCES) $(BENCHMARK_HEADERS)
 	clang-format -i $^
