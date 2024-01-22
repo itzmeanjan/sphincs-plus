@@ -126,7 +126,14 @@ make perf -j       # If you have built google-benchmark library with libPFM supp
 > [!NOTE]
 > `make perf` - was issued when collecting following benchmarks. Notice, cycles column, denoting cost of executing SPHINCS+ signature scheme routines in terms of CPU cycles. Follow https://github.com/google/benchmark/blob/main/docs/perf_counters.md for more details. For x86_64 targets, notice `rdtsc` column, showing CPU ticks collected using RD (read) *T*ime *S*tamp *C*ounter.
 
-### On 12th Gen Intel(R) Core(TM) i7-1260P [ Compiled with GCC-13.2.0 ]
+### On 12th Gen Intel(R) Core(TM) i7-1260P
+
+Compiled with **gcc version 13.2.0 (Ubuntu 13.2.0-4ubuntu3)**.
+
+```bash
+$ uname -srm
+Linux 6.5.0-14-generic x86_64
+```
 
 ```bash
 2024-01-12T23:13:17+04:00
@@ -359,7 +366,14 @@ sphincs+-192f-simple/verify/32_min          2.44 ms         2.44 ms           10
 sphincs+-192f-simple/verify/32_max          2.66 ms         2.65 ms           10    11.718M        409.659/s    6.6275M
 ```
 
-### On ARM Cortex-A72 i.e. Raspberry Pi 4B [ Compiled with GCC-13.2.0 ]
+### On ARM Cortex-A72 i.e. Raspberry Pi 4B
+
+Compiled with **gcc version 13.2.0 (Ubuntu 13.2.0-4ubuntu3)**.
+
+```bash
+$ uname -srm
+Linux 6.5.0-1008-raspi aarch64
+```
 
 ```bash
 2024-01-12T23:28:17+04:00
@@ -590,6 +604,246 @@ sphincs+-256f-simple/keygen_cv              0.04 %          0.04 %            10
 sphincs+-256f-simple/keygen_min             19.4 ms         19.4 ms           10   34.7937M        51.5876/s
 sphincs+-256f-simple/keygen_max             19.4 ms         19.4 ms           10   34.8376M        51.6496/s
 ```
+
+### On Apple M1 Max
+
+Compiled with **Apple clang version 15.0.0 (clang-1500.1.0.2.5)**.
+
+```bash
+uname -srm
+Darwin 23.2.0 arm64
+```
+
+```bash
+2024-01-22T20:57:36+04:00
+Running ./build/bench.out
+Run on (10 X 24 MHz CPU s)
+CPU Caches:
+  L1 Data 64 KiB
+  L1 Instruction 128 KiB
+  L2 Unified 4096 KiB (x10)
+Load Average: 4.08, 1.88, 1.82
+-------------------------------------------------------------------------------------------------
+Benchmark                                      Time             CPU   Iterations items_per_second
+-------------------------------------------------------------------------------------------------
+sphincs+-256s-simple/sign/32_mean            956 ms          955 ms           10        1.04694/s
+sphincs+-256s-simple/sign/32_median          952 ms          951 ms           10        1.05179/s
+sphincs+-256s-simple/sign/32_stddev         14.2 ms         14.3 ms           10      0.0151226/s
+sphincs+-256s-simple/sign/32_cv             1.48 %          1.50 %            10            1.44%
+sphincs+-256s-simple/sign/32_min             952 ms          951 ms           10         1.0039/s
+sphincs+-256s-simple/sign/32_max             997 ms          996 ms           10        1.05184/s
+sphincs+-192f-simple/verify/32_mean         2.63 ms         2.63 ms           10         380.76/s
+sphincs+-192f-simple/verify/32_median       2.64 ms         2.63 ms           10        379.595/s
+sphincs+-192f-simple/verify/32_stddev      0.047 ms        0.047 ms           10        6.92005/s
+sphincs+-192f-simple/verify/32_cv           1.80 %          1.81 %            10            1.82%
+sphincs+-192f-simple/verify/32_min          2.55 ms         2.55 ms           10        370.813/s
+sphincs+-192f-simple/verify/32_max          2.70 ms         2.70 ms           10        392.735/s
+sphincs+-192s-simple/sign/32_mean           1088 ms         1087 ms           10       0.920116/s
+sphincs+-192s-simple/sign/32_median         1088 ms         1087 ms           10       0.920072/s
+sphincs+-192s-simple/sign/32_stddev        0.163 ms        0.110 ms           10        93.278u/s
+sphincs+-192s-simple/sign/32_cv             0.01 %          0.01 %            10            0.01%
+sphincs+-192s-simple/sign/32_min            1088 ms         1087 ms           10       0.920022/s
+sphincs+-192s-simple/sign/32_max            1088 ms         1087 ms           10       0.920261/s
+sphincs+-128s-simple/keygen_mean            83.2 ms         83.1 ms           10        12.0375/s
+sphincs+-128s-simple/keygen_median          83.2 ms         83.1 ms           10        12.0375/s
+sphincs+-128s-simple/keygen_stddev         0.022 ms        0.005 ms           10       733.148u/s
+sphincs+-128s-simple/keygen_cv              0.03 %          0.01 %            10            0.01%
+sphincs+-128s-simple/keygen_min             83.1 ms         83.1 ms           10        12.0364/s
+sphincs+-128s-simple/keygen_max             83.2 ms         83.1 ms           10        12.0387/s
+sphincs+-256s-robust/sign/32_mean           1726 ms         1724 ms           10       0.580078/s
+sphincs+-256s-robust/sign/32_median         1719 ms         1716 ms           10       0.582602/s
+sphincs+-256s-robust/sign/32_stddev         18.0 ms         18.0 ms           10       5.92884m/s
+sphincs+-256s-robust/sign/32_cv             1.04 %          1.04 %            10            1.02%
+sphincs+-256s-robust/sign/32_min            1718 ms         1716 ms           10       0.564604/s
+sphincs+-256s-robust/sign/32_max            1774 ms         1771 ms           10       0.582721/s
+sphincs+-128f-simple/keygen_mean            1.30 ms         1.30 ms           10        770.521/s
+sphincs+-128f-simple/keygen_median          1.30 ms         1.30 ms           10        770.518/s
+sphincs+-128f-simple/keygen_stddev         0.001 ms        0.000 ms           10      0.0452933/s
+sphincs+-128f-simple/keygen_cv              0.04 %          0.01 %            10            0.01%
+sphincs+-128f-simple/keygen_min             1.30 ms         1.30 ms           10         770.46/s
+sphincs+-128f-simple/keygen_max             1.30 ms         1.30 ms           10        770.625/s
+sphincs+-256f-simple/keygen_mean            5.01 ms         5.01 ms           10        199.687/s
+sphincs+-256f-simple/keygen_median          5.01 ms         5.01 ms           10        199.689/s
+sphincs+-256f-simple/keygen_stddev         0.001 ms        0.000 ms           10      0.0144266/s
+sphincs+-256f-simple/keygen_cv              0.03 %          0.01 %            10            0.01%
+sphincs+-256f-simple/keygen_min             5.01 ms         5.01 ms           10        199.663/s
+sphincs+-256f-simple/keygen_max             5.02 ms         5.01 ms           10        199.712/s
+sphincs+-256s-robust/verify/32_mean         2.55 ms         2.55 ms           10        392.218/s
+sphincs+-256s-robust/verify/32_median       2.56 ms         2.55 ms           10        391.584/s
+sphincs+-256s-robust/verify/32_stddev      0.040 ms        0.040 ms           10        6.19041/s
+sphincs+-256s-robust/verify/32_cv           1.59 %          1.57 %            10            1.58%
+sphincs+-256s-robust/verify/32_min          2.48 ms         2.48 ms           10        383.864/s
+sphincs+-256s-robust/verify/32_max          2.61 ms         2.61 ms           10        403.425/s
+sphincs+-256s-simple/keygen_mean            80.2 ms         80.1 ms           10        12.4794/s
+sphincs+-256s-simple/keygen_median          80.2 ms         80.1 ms           10        12.4797/s
+sphincs+-256s-simple/keygen_stddev         0.030 ms        0.012 ms           10       1.88862m/s
+sphincs+-256s-simple/keygen_cv              0.04 %          0.02 %            10            0.02%
+sphincs+-256s-simple/keygen_min             80.2 ms         80.1 ms           10        12.4759/s
+sphincs+-256s-simple/keygen_max             80.3 ms         80.2 ms           10        12.4817/s
+sphincs+-192f-simple/keygen_mean            1.90 ms         1.90 ms           10        527.157/s
+sphincs+-192f-simple/keygen_median          1.90 ms         1.90 ms           10        527.158/s
+sphincs+-192f-simple/keygen_stddev         0.001 ms        0.000 ms           10      0.0439028/s
+sphincs+-192f-simple/keygen_cv              0.04 %          0.01 %            10            0.01%
+sphincs+-192f-simple/keygen_min             1.90 ms         1.90 ms           10        527.081/s
+sphincs+-192f-simple/keygen_max             1.90 ms         1.90 ms           10        527.223/s
+sphincs+-128s-robust/sign/32_mean           1173 ms         1172 ms           10       0.853268/s
+sphincs+-128s-robust/sign/32_median         1173 ms         1172 ms           10       0.853432/s
+sphincs+-128s-robust/sign/32_stddev        0.992 ms        0.812 ms           10       590.275u/s
+sphincs+-128s-robust/sign/32_cv             0.08 %          0.07 %            10            0.07%
+sphincs+-128s-robust/sign/32_min            1173 ms         1172 ms           10       0.851615/s
+sphincs+-128s-robust/sign/32_max            1176 ms         1174 ms           10       0.853585/s
+sphincs+-192f-robust/keygen_mean            3.56 ms         3.56 ms           10        281.038/s
+sphincs+-192f-robust/keygen_median          3.56 ms         3.56 ms           10        281.015/s
+sphincs+-192f-robust/keygen_stddev         0.001 ms        0.001 ms           10      0.0645186/s
+sphincs+-192f-robust/keygen_cv              0.03 %          0.02 %            10            0.02%
+sphincs+-192f-robust/keygen_min             3.56 ms         3.56 ms           10        280.978/s
+sphincs+-192f-robust/keygen_max             3.56 ms         3.56 ms           10        281.162/s
+sphincs+-192f-simple/sign/32_mean           48.9 ms         48.8 ms           10        20.4728/s
+sphincs+-192f-simple/sign/32_median         48.9 ms         48.8 ms           10        20.4818/s
+sphincs+-192f-simple/sign/32_stddev        0.073 ms        0.069 ms           10      0.0286755/s
+sphincs+-192f-simple/sign/32_cv             0.15 %          0.14 %            10            0.14%
+sphincs+-192f-simple/sign/32_min            48.8 ms         48.8 ms           10        20.3917/s
+sphincs+-192f-simple/sign/32_max            49.1 ms         49.0 ms           10        20.4852/s
+sphincs+-128f-simple/sign/32_mean           30.3 ms         30.3 ms           10        33.0301/s
+sphincs+-128f-simple/sign/32_median         30.3 ms         30.3 ms           10        33.0311/s
+sphincs+-128f-simple/sign/32_stddev        0.013 ms        0.010 ms           10       0.010819/s
+sphincs+-128f-simple/sign/32_cv             0.04 %          0.03 %            10            0.03%
+sphincs+-128f-simple/sign/32_min            30.3 ms         30.3 ms           10        33.0129/s
+sphincs+-128f-simple/sign/32_max            30.3 ms         30.3 ms           10        33.0478/s
+sphincs+-192f-robust/verify/32_mean         5.09 ms         5.08 ms           10        196.916/s
+sphincs+-192f-robust/verify/32_median       5.09 ms         5.08 ms           10        196.843/s
+sphincs+-192f-robust/verify/32_stddev      0.107 ms        0.107 ms           10        4.14326/s
+sphincs+-192f-robust/verify/32_cv           2.11 %          2.11 %            10            2.10%
+sphincs+-192f-robust/verify/32_min          4.92 ms         4.92 ms           10        190.444/s
+sphincs+-192f-robust/verify/32_max          5.26 ms         5.25 ms           10        203.318/s
+sphincs+-128f-robust/verify/32_mean         3.44 ms         3.44 ms           10        290.687/s
+sphincs+-128f-robust/verify/32_median       3.45 ms         3.44 ms           10        290.344/s
+sphincs+-128f-robust/verify/32_stddev      0.042 ms        0.043 ms           10        3.61899/s
+sphincs+-128f-robust/verify/32_cv           1.23 %          1.24 %            10            1.24%
+sphincs+-128f-robust/verify/32_min          3.37 ms         3.37 ms           10        286.211/s
+sphincs+-128f-robust/verify/32_max          3.50 ms         3.49 ms           10        296.826/s
+sphincs+-128s-simple/sign/32_mean            631 ms          630 ms           10        1.58651/s
+sphincs+-128s-simple/sign/32_median          631 ms          630 ms           10        1.58658/s
+sphincs+-128s-simple/sign/32_stddev        0.207 ms        0.118 ms           10       297.925u/s
+sphincs+-128s-simple/sign/32_cv             0.03 %          0.02 %            10            0.02%
+sphincs+-128s-simple/sign/32_min             631 ms          630 ms           10        1.58568/s
+sphincs+-128s-simple/sign/32_max             632 ms          631 ms           10        1.58671/s
+sphincs+-128f-robust/sign/32_mean           56.4 ms         56.3 ms           10        17.7478/s
+sphincs+-128f-robust/sign/32_median         56.4 ms         56.3 ms           10        17.7467/s
+sphincs+-128f-robust/sign/32_stddev        0.026 ms        0.026 ms           10        8.2731m/s
+sphincs+-128f-robust/sign/32_cv             0.05 %          0.05 %            10            0.05%
+sphincs+-128f-robust/sign/32_min            56.4 ms         56.3 ms           10        17.7384/s
+sphincs+-128f-robust/sign/32_max            56.4 ms         56.4 ms           10        17.7621/s
+sphincs+-128f-simple/verify/32_mean         1.80 ms         1.80 ms           10        556.312/s
+sphincs+-128f-simple/verify/32_median       1.79 ms         1.79 ms           10         559.06/s
+sphincs+-128f-simple/verify/32_stddev      0.049 ms        0.049 ms           10        14.9518/s
+sphincs+-128f-simple/verify/32_cv           2.70 %          2.71 %            10            2.69%
+sphincs+-128f-simple/verify/32_min          1.73 ms         1.72 ms           10        532.058/s
+sphincs+-128f-simple/verify/32_max          1.88 ms         1.88 ms           10        580.051/s
+sphincs+-192s-simple/keygen_mean             121 ms          121 ms           10        8.24687/s
+sphincs+-192s-simple/keygen_median           121 ms          121 ms           10        8.24698/s
+sphincs+-192s-simple/keygen_stddev         0.033 ms        0.011 ms           10        772.41u/s
+sphincs+-192s-simple/keygen_cv              0.03 %          0.01 %            10            0.01%
+sphincs+-192s-simple/keygen_min              121 ms          121 ms           10        8.24579/s
+sphincs+-192s-simple/keygen_max              121 ms          121 ms           10        8.24797/s
+sphincs+-256f-simple/sign/32_mean            101 ms          100 ms           10        9.96101/s
+sphincs+-256f-simple/sign/32_median          100 ms          100 ms           10        9.96204/s
+sphincs+-256f-simple/sign/32_stddev        0.053 ms        0.039 ms           10       3.91328m/s
+sphincs+-256f-simple/sign/32_cv             0.05 %          0.04 %            10            0.04%
+sphincs+-256f-simple/sign/32_min             100 ms          100 ms           10        9.95045/s
+sphincs+-256f-simple/sign/32_max             101 ms          100 ms           10        9.96393/s
+sphincs+-192s-robust/sign/32_mean           1988 ms         1985 ms           10       0.503742/s
+sphincs+-192s-robust/sign/32_median         1986 ms         1983 ms           10       0.504245/s
+sphincs+-192s-robust/sign/32_stddev         6.13 ms         5.98 ms           10       1.50493m/s
+sphincs+-192s-robust/sign/32_cv             0.31 %          0.30 %            10            0.30%
+sphincs+-192s-robust/sign/32_min            1985 ms         1983 ms           10        0.49947/s
+sphincs+-192s-robust/sign/32_max            2005 ms         2002 ms           10       0.504295/s
+sphincs+-128s-simple/verify/32_mean        0.618 ms        0.617 ms           10       1.62283k/s
+sphincs+-128s-simple/verify/32_median      0.616 ms        0.615 ms           10       1.62509k/s
+sphincs+-128s-simple/verify/32_stddev      0.022 ms        0.022 ms           10        57.5421/s
+sphincs+-128s-simple/verify/32_cv           3.57 %          3.56 %            10            3.55%
+sphincs+-128s-simple/verify/32_min         0.586 ms        0.585 ms           10       1.52839k/s
+sphincs+-128s-simple/verify/32_max         0.655 ms        0.654 ms           10       1.70824k/s
+sphincs+-128s-robust/verify/32_mean         1.17 ms         1.17 ms           10        854.079/s
+sphincs+-128s-robust/verify/32_median       1.17 ms         1.17 ms           10        857.166/s
+sphincs+-128s-robust/verify/32_stddev      0.031 ms        0.031 ms           10        22.3277/s
+sphincs+-128s-robust/verify/32_cv           2.64 %          2.65 %            10            2.61%
+sphincs+-128s-robust/verify/32_min          1.13 ms         1.13 ms           10        813.641/s
+sphincs+-128s-robust/verify/32_max          1.23 ms         1.23 ms           10        885.665/s
+sphincs+-256f-robust/sign/32_mean            186 ms          186 ms           10        5.38278/s
+sphincs+-256f-robust/sign/32_median          186 ms          186 ms           10        5.39002/s
+sphincs+-256f-robust/sign/32_stddev        0.715 ms        0.747 ms           10      0.0214275/s
+sphincs+-256f-robust/sign/32_cv             0.38 %          0.40 %            10            0.40%
+sphincs+-256f-robust/sign/32_min             186 ms          186 ms           10        5.32189/s
+sphincs+-256f-robust/sign/32_max             188 ms          188 ms           10        5.39049/s
+sphincs+-128s-robust/keygen_mean             156 ms          156 ms           10        6.41065/s
+sphincs+-128s-robust/keygen_median           156 ms          156 ms           10        6.41071/s
+sphincs+-128s-robust/keygen_stddev         0.052 ms        0.014 ms           10       574.443u/s
+sphincs+-128s-robust/keygen_cv              0.03 %          0.01 %            10            0.01%
+sphincs+-128s-robust/keygen_min              156 ms          156 ms           10        6.40968/s
+sphincs+-128s-robust/keygen_max              156 ms          156 ms           10        6.41161/s
+sphincs+-256f-simple/verify/32_mean         2.68 ms         2.68 ms           10        373.394/s
+sphincs+-256f-simple/verify/32_median       2.69 ms         2.69 ms           10        371.807/s
+sphincs+-256f-simple/verify/32_stddev      0.047 ms        0.047 ms           10        6.60918/s
+sphincs+-256f-simple/verify/32_cv           1.75 %          1.77 %            10            1.77%
+sphincs+-256f-simple/verify/32_min          2.61 ms         2.60 ms           10        361.898/s
+sphincs+-256f-simple/verify/32_max          2.76 ms         2.76 ms           10        384.206/s
+sphincs+-192s-robust/verify/32_mean         1.73 ms         1.72 ms           10        580.372/s
+sphincs+-192s-robust/verify/32_median       1.74 ms         1.74 ms           10         575.88/s
+sphincs+-192s-robust/verify/32_stddev      0.040 ms        0.040 ms           10        13.6261/s
+sphincs+-192s-robust/verify/32_cv           2.32 %          2.33 %            10            2.35%
+sphincs+-192s-robust/verify/32_min          1.66 ms         1.66 ms           10        561.004/s
+sphincs+-192s-robust/verify/32_max          1.79 ms         1.78 ms           10        603.469/s
+sphincs+-256s-simple/verify/32_mean         1.32 ms         1.32 ms           10        758.553/s
+sphincs+-256s-simple/verify/32_median       1.32 ms         1.32 ms           10        759.077/s
+sphincs+-256s-simple/verify/32_stddev      0.023 ms        0.023 ms           10        13.5255/s
+sphincs+-256s-simple/verify/32_cv           1.77 %          1.77 %            10            1.78%
+sphincs+-256s-simple/verify/32_min          1.28 ms         1.27 ms           10        741.999/s
+sphincs+-256s-simple/verify/32_max          1.35 ms         1.35 ms           10        784.793/s
+sphincs+-256f-robust/verify/32_mean         5.19 ms         5.18 ms           10        192.933/s
+sphincs+-256f-robust/verify/32_median       5.19 ms         5.18 ms           10         193.06/s
+sphincs+-256f-robust/verify/32_stddev      0.097 ms        0.097 ms           10        3.63415/s
+sphincs+-256f-robust/verify/32_cv           1.88 %          1.87 %            10            1.88%
+sphincs+-256f-robust/verify/32_min          5.01 ms         5.00 ms           10         187.86/s
+sphincs+-256f-robust/verify/32_max          5.33 ms         5.32 ms           10        199.816/s
+sphincs+-192f-robust/sign/32_mean           90.0 ms         89.9 ms           10        11.1264/s
+sphincs+-192f-robust/sign/32_median         90.0 ms         89.9 ms           10        11.1257/s
+sphincs+-192f-robust/sign/32_stddev        0.024 ms        0.016 ms           10       2.01766m/s
+sphincs+-192f-robust/sign/32_cv             0.03 %          0.02 %            10            0.02%
+sphincs+-192f-robust/sign/32_min            89.9 ms         89.8 ms           10        11.1239/s
+sphincs+-192f-robust/sign/32_max            90.0 ms         89.9 ms           10        11.1303/s
+sphincs+-192s-simple/verify/32_mean        0.902 ms        0.901 ms           10       1.11103k/s
+sphincs+-192s-simple/verify/32_median      0.897 ms        0.896 ms           10       1.11658k/s
+sphincs+-192s-simple/verify/32_stddev      0.029 ms        0.029 ms           10        34.9975/s
+sphincs+-192s-simple/verify/32_cv           3.20 %          3.19 %            10            3.15%
+sphincs+-192s-simple/verify/32_min         0.871 ms        0.870 ms           10       1.05571k/s
+sphincs+-192s-simple/verify/32_max         0.948 ms        0.947 ms           10       1.14974k/s
+sphincs+-256s-robust/keygen_mean             152 ms          151 ms           10         6.6089/s
+sphincs+-256s-robust/keygen_median           151 ms          151 ms           10        6.60882/s
+sphincs+-256s-robust/keygen_stddev         0.050 ms        0.015 ms           10       639.449u/s
+sphincs+-256s-robust/keygen_cv              0.03 %          0.01 %            10            0.01%
+sphincs+-256s-robust/keygen_min              151 ms          151 ms           10        6.60812/s
+sphincs+-256s-robust/keygen_max              152 ms          151 ms           10        6.60995/s
+sphincs+-256f-robust/keygen_mean            9.47 ms         9.46 ms           10        105.719/s
+sphincs+-256f-robust/keygen_median          9.47 ms         9.46 ms           10        105.724/s
+sphincs+-256f-robust/keygen_stddev         0.005 ms        0.003 ms           10      0.0296424/s
+sphincs+-256f-robust/keygen_cv              0.05 %          0.03 %            10            0.03%
+sphincs+-256f-robust/keygen_min             9.47 ms         9.46 ms           10        105.645/s
+sphincs+-256f-robust/keygen_max             9.48 ms         9.47 ms           10        105.746/s
+sphincs+-192s-robust/keygen_mean             228 ms          228 ms           10        4.39032/s
+sphincs+-192s-robust/keygen_median           228 ms          228 ms           10        4.39021/s
+sphincs+-192s-robust/keygen_stddev         0.070 ms        0.048 ms           10       929.561u/s
+sphincs+-192s-robust/keygen_cv              0.03 %          0.02 %            10            0.02%
+sphincs+-192s-robust/keygen_min              228 ms          228 ms           10        4.38935/s
+sphincs+-192s-robust/keygen_max              228 ms          228 ms           10        4.39282/s
+sphincs+-128f-robust/keygen_mean            2.44 ms         2.44 ms           10        410.636/s
+sphincs+-128f-robust/keygen_median          2.44 ms         2.44 ms           10        410.644/s
+sphincs+-128f-robust/keygen_stddev         0.001 ms        0.000 ms           10      0.0326569/s
+sphincs+-128f-robust/keygen_cv              0.04 %          0.01 %            10            0.01%
+sphincs+-128f-robust/keygen_min             2.44 ms         2.44 ms           10        410.568/s
+sphincs+-128f-robust/keygen_max             2.44 ms         2.44 ms           10        410.672/s
+```
+
 
 ## Usage
 
