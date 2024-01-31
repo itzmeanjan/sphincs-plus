@@ -1,5 +1,5 @@
 > [!CAUTION] 
-> This Sphincs+ implementation is conformant with the Sphincs+ [specification](https://sphincs.org/data/sphincs+-r3.1-specification.pdf) and I also try to make it constant-time but be informed that it is not yet audited. **If you consider using it in production, be careful !**
+> This Sphincs+ implementation is conformant with Sphincs+ specification @ https://sphincs.org/data/sphincs+-r3.1-specification.pdf. I also try to make it timing leakage free, using `dudect` (see https://github.com/oreparaz/dudect) -based tests, but be informed that this implementation is not yet audited. *If you consider using it in production, be careful !*
 
 # sphincs-plus
 SPHINCS+: Stateless Hash-based Digital Signature Algorithm
@@ -73,7 +73,9 @@ For ensuring that SPHINCS+ implementation is functionally correct and compliant 
 > This implementation of SPHINCS+ specification is **tested** to be compatible and conformant with r3.1 of the specification. That's ensured by generating known answer tests ( KATs ) following https://gist.github.com/itzmeanjan/d483872509b8a1a7c4d6614ec9d43e6c and testing this implementation using those test vectors.
 
 ```bash
-make -j
+make -j            # Run tests without any sort of sanitizers
+make asan_test -j  # Run tests with AddressSanitizer enabled
+make ubsan_test -j # Run tests with UndefinedBehaviourSanitizer enabled
 ```
 
 ```bash
@@ -106,6 +108,45 @@ PASSED TESTS (27/27):
   413912 ms: build/test.out SphincsPlus.SphincsPlus128sRobustKnownAnswerTests
   540031 ms: build/test.out SphincsPlus.SphincsPlus256sRobustKnownAnswerTests
   592956 ms: build/test.out SphincsPlus.SphincsPlus192sRobustKnownAnswerTests
+```
+
+You can run timing leakage tests, using `dudect`; execute following
+
+> [!NOTE]
+> `dudect` is integrated into this library implementation of Sphincs+ DSA to find any sort of timing leakages. It checks for constant-timeness of most of both `keygen` and `sign` function implementations, for only one variant i.e. **128f-simple**.
+
+```bash
+# Can only be built and run on x86_64 machine.
+make dudect_test_build -j
+
+# Before running the constant-time tests, it's a good idea to put all CPU cores on "performance" mode.
+# You may find the guide @ https://github.com/google/benchmark/blob/main/docs/reducing_variance.md helpful.
+
+# Given Sphincs+ is slow, compared to Dilithium/ Falcon, following tests are required to be run
+# for longer, so that we can collect enough execution timing samples.
+timeout 2h taskset -c 0 ./build/dudect/test_sphincs+_128f_simple_keygen.out
+timeout 2h taskset -c 0 ./build/dudect/test_sphincs+_128f_simple_sign.out
+```
+
+> [!TIP]
+> `dudect` documentation says if `t` statistic is `< 10`, we're *probably* good, yes **probably**. You may want to read `dudect` documentation @ https://github.com/oreparaz/dudect. Also you might find the original paper @ https://ia.cr/2016/1123 interesting.
+
+```bash
+...
+meas:    0.69 M, max t:   +2.58, max tau: 3.11e-03, (5/tau)^2: 2.58e+06. For the moment, maybe constant time.
+meas:    0.70 M, max t:   +2.74, max tau: 3.27e-03, (5/tau)^2: 2.34e+06. For the moment, maybe constant time.
+meas:    0.71 M, max t:   +2.73, max tau: 3.24e-03, (5/tau)^2: 2.38e+06. For the moment, maybe constant time.
+meas:    0.72 M, max t:   +2.62, max tau: 3.09e-03, (5/tau)^2: 2.61e+06. For the moment, maybe constant time.
+meas:    0.73 M, max t:   +2.66, max tau: 3.11e-03, (5/tau)^2: 2.58e+06. For the moment, maybe constant time.
+meas:    0.74 M, max t:   +2.70, max tau: 3.14e-03, (5/tau)^2: 2.53e+06. For the moment, maybe constant time.
+meas:    0.75 M, max t:   +2.62, max tau: 3.03e-03, (5/tau)^2: 2.72e+06. For the moment, maybe constant time.
+meas:    0.76 M, max t:   +2.60, max tau: 2.99e-03, (5/tau)^2: 2.80e+06. For the moment, maybe constant time.
+meas:    0.77 M, max t:   +2.62, max tau: 2.99e-03, (5/tau)^2: 2.80e+06. For the moment, maybe constant time.
+meas:    0.78 M, max t:   +2.52, max tau: 2.85e-03, (5/tau)^2: 3.07e+06. For the moment, maybe constant time.
+meas:    0.79 M, max t:   +2.57, max tau: 2.89e-03, (5/tau)^2: 3.00e+06. For the moment, maybe constant time.
+meas:    0.80 M, max t:   +2.51, max tau: 2.81e-03, (5/tau)^2: 3.18e+06. For the moment, maybe constant time.
+meas:    0.81 M, max t:   +2.49, max tau: 2.77e-03, (5/tau)^2: 3.25e+06. For the moment, maybe constant time.
+meas:    0.82 M, max t:   +2.52, max tau: 2.78e-03, (5/tau)^2: 3.23e+06. For the moment, maybe constant time.
 ```
 
 ## Benchmarking
